@@ -1,0 +1,818 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>自立活動コンパイラ v1.65</title><style>
+*{box-sizing:border-box}body{margin:0;background:#f3f5f8;color:#17202a;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP","Yu Gothic",sans-serif}header{background:#111827;color:#fff;padding:15px;position:sticky;top:0;z-index:1000}main{max-width:1100px;margin:auto;padding:14px}.layout{display:grid;grid-template-columns:280px 1fr;gap:14px}@media(max-width:800px){.layout{grid-template-columns:1fr}}.card{background:#fff;border:1px solid #d9dee7;border-radius:14px;padding:15px;margin-bottom:12px}h1{font-size:19px;margin:0}h2{font-size:16px;margin:0 0 10px}h3{font-size:13px;margin:15px 0 6px}label{font-size:11px;font-weight:800;display:block;margin:8px 0 4px}input,textarea,select{width:100%;padding:9px;border:1px solid #cfd5df;border-radius:9px;font:inherit}textarea{min-height:75px}button{border:0;border-radius:9px;padding:9px 11px;margin:3px;font-weight:700;cursor:pointer;transition:transform .08s ease,box-shadow .12s ease,filter .12s ease}button:active{transform:scale(.96)}button.button-clicked{animation:buttonPulse .32s ease;box-shadow:0 0 0 3px rgba(37,99,235,.28)}@keyframes buttonPulse{0%{transform:scale(1)}45%{transform:scale(.94)}100%{transform:scale(1)}}button.primary.button-clicked{filter:brightness(1.18)}button.primary{background:#2563eb;color:#fff}button.red{background:#fee2e2;color:#991b1b}.tabs{display:flex;gap:5px;overflow:auto;margin-bottom:12px}.tabs button{white-space:nowrap}.tabs .active{background:#111827;color:#fff}.view{display:none}.view.active{display:block}.notice{background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:11px;font-size:13px;line-height:1.7}.muted,.meta{font-size:10px;color:#667085}.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.kpi div{border:1px solid #d9dee7;border-radius:10px;padding:9px}.kpi b{font-size:20px;display:block}.item{border:1px solid #d9dee7;border-radius:10px;padding:10px;margin:7px 0}.tag{display:inline-block;background:#eef2ff;color:#3730a3;border-radius:99px;padding:4px 7px;font-size:10px;margin:2px}.flow{display:grid;gap:6px}.node{border:1px solid #d9dee7;border-radius:10px;padding:10px}.arrow{text-align:center;color:#2563eb;font-weight:900}.compare{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:650px){.kpi{grid-template-columns:repeat(2,1fr)}.compare{grid-template-columns:1fr}}.ai-skeleton{border:2px solid #7c3aed!important;background:#faf5ff;border-radius:12px;padding:12px;font-size:13px;line-height:1.7}.ai-skeleton-title{font-size:15px;font-weight:900;color:#5b21b6;margin-bottom:5px}.ai-result-notice{font-size:14px!important;line-height:1.8!important}.ai-result-notice strong{font-size:14px}
+.ai-counts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.ai-counts span{background:#fff;border:1px solid #c4b5fd;border-radius:999px;padding:4px 8px;font-size:12px;font-weight:800}.ai-next{margin-top:10px;padding-top:9px;border-top:1px dashed #c4b5fd}.ai-detail-section{border:2px solid #cbd5e1;border-radius:12px;background:#fff;padding:12px;margin-top:10px;font-size:14px;line-height:1.75}.ai-detail-section h3{margin:0 0 8px;font-size:15px}.ai-detail-section ul{margin:0;padding-left:22px}.ai-detail-section li{margin:6px 0}.ai-focus-section{border-color:#2563eb;background:#eff6ff}.ai-focus{font-size:15px}.ai-focus p{margin:6px 0 0}.ai-result-notice{font-size:14px!important;line-height:1.8!important}
+ .ai-review{border:3px solid #0f766e;border-radius:14px;background:#f0fdfa;padding:14px;margin-top:12px;font-size:14px;line-height:1.75}.ai-review h3{font-size:16px;margin:0 0 8px;color:#115e59}.review-choice{border:1px solid #99f6e4;border-radius:10px;background:#fff;padding:10px;margin:7px 0}.review-choice.selected{border:3px solid #0f766e;background:#ecfdf5}.review-choice button{font-size:12px}.review-checks label{font-size:13px;font-weight:700;display:flex;gap:8px;align-items:flex-start;margin:7px 0}.review-checks input{width:auto;margin-top:4px}.review-status{font-size:13px;font-weight:800;color:#115e59;margin-top:8px}.#toast{display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;padding:10px;border-radius:10px;z-index:2000;box-shadow:0 5px 20px rgba(0,0,0,.22)}#backToTop{position:fixed;right:18px;bottom:20px;z-index:1900;width:48px;height:48px;border-radius:50%;background:#111827;color:#fff;font-size:20px;box-shadow:0 4px 16px rgba(0,0,0,.25);opacity:.92;display:flex;align-items:center;justify-content:center;padding:0;margin:0}#backToTop:hover{filter:brightness(1.2);transform:translateY(-2px)}#backToTop.hidden{display:none}
+.ai-overview{border:3px solid #7c3aed;border-radius:14px;background:#faf5ff;padding:12px;margin-top:10px}
+.ai-overview-title{font-size:16px;font-weight:900;color:#5b21b6;margin-bottom:7px}
+.ai-detail-section details{border:0}
+.ai-detail-section summary{cursor:pointer;font-size:15px;font-weight:900;list-style:none}
+.ai-detail-section summary::-webkit-details-marker{display:none}
+.ai-detail-section summary::before{content:"▶";display:inline-block;margin-right:7px;font-size:11px;color:#64748b}
+.ai-detail-section details[open] summary::before{content:"▼"}
+.ai-detail-body{margin-top:9px}
+.review-action-status{display:none;margin:8px 0;padding:9px 11px;border-radius:9px;background:#dcfce7;border:1px solid #86efac;color:#166534;font-weight:800}
+.review-action-status.show{display:block}
+.review-choice .review-selected-mark{display:inline-block;margin-left:7px;padding:2px 7px;border-radius:999px;background:#ccfbf1;color:#115e59;font-size:11px;font-weight:900}
+.ai-review-compact{position:relative;z-index:auto;box-shadow:0 2px 10px rgba(15,118,110,.08)}
+
+.ai-timeline{display:flex;gap:10px;overflow-x:auto;padding:8px 2px 12px;scroll-snap-type:x proximity}.ai-timeline-card{min-width:210px;max-width:280px;border:2px solid #94a3b8;border-radius:12px;padding:11px;background:#fff;scroll-snap-align:start}.ai-timeline-card .period{font-weight:900;font-size:14px;margin-bottom:6px}.ai-timeline-card .support-level{font-size:12px;font-weight:800;color:#475569;margin-bottom:5px}.ai-timeline-card .evidence{font-size:13px;line-height:1.55}.ai-change-summary{margin-top:8px;padding:10px;border-radius:10px;background:#f8fafc;border-left:4px solid #64748b;font-size:14px;line-height:1.6}.ai-change-summary b{display:block;margin-bottom:4px}.ai-gap{margin-top:8px;padding:9px;border-radius:9px;background:#fff7ed;border:1px solid #fed7aa;font-size:13px}
+
+.change-signal-list{margin-top:7px;display:grid;gap:7px}.change-signal-item{border:1px solid #d7dce5;border-radius:9px;background:#fff;padding:8px 10px}.change-signal-item summary{cursor:pointer;font-weight:800;display:flex;justify-content:space-between;gap:10px;align-items:center}.change-count{font-size:11px;font-weight:700;color:#64748b;white-space:nowrap}.change-evidence-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}.change-evidence{border:1px solid #e2e8f0;border-radius:8px;padding:8px;background:#f8fafc}.change-evidence-title{font-size:11px;font-weight:900;margin-bottom:5px}.change-evidence-row{display:grid;gap:3px;padding:7px 0;border-top:1px solid #e2e8f0;font-size:12px;line-height:1.5}.change-evidence-row:first-of-type{border-top:0}.change-evidence-meta{font-size:10px;color:#64748b;font-weight:800}@media(max-width:700px){.change-evidence-grid{grid-template-columns:1fr}.change-signal-item summary{display:block}.change-count{display:block;margin-top:3px}}
+.change-signal-block{margin-top:10px;padding:10px;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc}.change-signal-block ul{margin:6px 0 0 20px}.change-signal-stats{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.change-signal-stats span{padding:6px 9px;border-radius:999px;background:#e2e8f0;font-size:12px;font-weight:800}.
+.review-ai-card{border:2px solid #2563eb!important;background:#eff6ff!important}
+.record-item.is-off{opacity:.55;background:#f8fafc;border-style:dashed}
+.record-status{font-weight:800;color:#64748b}
+.record-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.record-actions button{font-size:11px;padding:6px 9px}
+.record-edit-dialog{position:fixed;inset:0;background:rgba(15,23,42,.48);display:none;align-items:center;justify-content:center;z-index:3000;padding:16px}
+.record-edit-dialog.show{display:flex}
+.record-edit-panel{width:min(700px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:14px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.28)}
+.record-edit-panel h2{font-size:19px;margin-top:0}
+.record-edit-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+.record-filter{display:flex;align-items:center;gap:8px;padding:9px 0;margin-bottom:4px}
+.record-filter label{display:flex;align-items:center;gap:6px;font-size:12px;margin:0;font-weight:800}
+.record-filter input{width:auto}
+.post-ai-prompt-details{margin-top:10px}
+.post-ai-prompt-details summary{cursor:pointer;font-weight:800;color:#334155}
+#postAIPromptBox{min-height:120px;font-size:11px;background:#f8fafc}
+.reanalysis-card{border:2px solid #7c3aed!important;background:#faf5ff!important}
+.reanalysis-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0}
+.reanalysis-stat{background:#fff;border:1px solid #ddd6fe;border-radius:10px;padding:10px;text-align:center}
+.reanalysis-stat b{display:block;font-size:20px}
+.evidence-list{display:grid;gap:7px;margin-top:8px}
+.evidence-row{display:grid;grid-template-columns:90px 1fr auto;gap:8px;align-items:start;padding:8px;border:1px solid #e5e7eb;border-radius:9px;background:#fff}
+.evidence-row .badge{font-weight:800}.evidence-row .support{color:#166534}.evidence-row .counter{color:#b91c1c}.evidence-row .neutral{color:#475569}
+@media(max-width:800px){.reanalysis-grid{grid-template-columns:repeat(2,1fr)}.evidence-row{grid-template-columns:1fr}}
+
+.plan-decision{border:2px solid #cbd5e1;border-radius:12px;padding:14px;margin-top:12px;background:#f8fafc}
+.plan-decision h3{margin:0 0 8px}
+.decision-buttons{display:flex;gap:8px;flex-wrap:wrap}
+.decision-buttons button{font-weight:800}
+.decision-buttons button.selected{outline:3px solid #0f766e;background:#ecfdf5}
+.decision-status{margin-top:8px;font-size:12px;font-weight:800}
+.plan-history{margin-top:12px}
+.plan-history details{border-top:1px solid #e2e8f0;padding:8px 0}
+.plan-history summary{cursor:pointer;font-weight:800}
+
+
+.review-ai-actions{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.review-ai-status{margin-top:8px;padding:9px 11px;border-radius:9px;background:#dcfce7;border:1px solid #86efac;color:#166534;font-weight:800;display:none}
+.review-ai-status.show{display:block}
+.review-ai-result{margin-top:10px;border:2px solid #7c3aed;border-radius:12px;background:#faf5ff;padding:12px;font-size:14px;line-height:1.7}
+.review-ai-result h3{color:#5b21b6;font-size:15px;margin:9px 0 4px}
+.review-ai-result .verdict{font-size:16px;font-weight:900}
+
+.discriminator-pair{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}.discriminator-side{background:var(--soft);border-radius:10px;padding:12px;margin:10px 0}.discriminator-side ul{margin:8px 0 0 18px}.discriminator-side li{margin:8px 0}
+.evidence-matrix{width:100%;border-collapse:collapse;font-size:13px;min-width:760px}.evidence-matrix th,.evidence-matrix td{border:1px solid #d7dce5;padding:8px;vertical-align:top;text-align:left}.evidence-matrix thead th{background:#f3f4f6;position:sticky;top:0;z-index:1}.matrix-yes,.matrix-hard,.matrix-none{display:inline-block;padding:4px 7px;border-radius:999px;font-weight:800;font-size:12px}.matrix-yes{background:#dcfce7;color:#166534}.matrix-hard{background:#fee2e2;color:#991b1b}.matrix-none{background:#f3f4f6;color:#6b7280}
+@media print{
+@page{size:A4;margin:12mm 12mm 14mm}
+header,.sidebar,.tabs,button,#toast,.review-ai-card{display:none!important}
+body{background:#fff!important;color:#000!important;font-size:12pt!important}
+main{max-width:none!important;padding:0!important;margin:0!important}
+.layout{display:block}
+.card{border:0!important;border-radius:0!important;padding:0!important;margin:0 0 12mm!important;page-break-inside:avoid}
+.card h2{font-size:16pt!important;margin:0 0 4mm!important}
+.card h3{font-size:13pt!important;margin:5mm 0 2mm!important}
+textarea,input,select{font-size:12pt!important;line-height:1.65!important;color:#000!important;background:#fff!important}
+textarea{overflow:visible!important;resize:none!important;white-space:pre-wrap!important;word-break:break-word!important}
+#task,#goal,#support{border:1px solid #cfd5df!important;border-radius:8px!important;padding:5mm!important}
+.notice,.item,.node{page-break-inside:avoid}
+}
+#hypothesisCompare,#hypothesisEvidenceMatrix,#hypothesisDiscriminators,.plan-history,.review-ai-card{display:none!important}.student-bar{display:flex;gap:6px;align-items:center;margin-top:9px;max-width:700px}.student-bar select{width:auto;min-width:180px;padding:6px 9px}.student-bar button{background:#fff;color:#111827;padding:6px 9px}.student-list-row{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;border:1px solid #d9dee7;border-radius:10px;padding:9px;margin:6px 0;background:#fff}.student-list-row.archived{opacity:.65}.student-list-main b{display:block}.student-list-main span{font-size:11px;color:#667085}.student-list-actions{display:flex;gap:4px;flex-wrap:wrap}.student-list-actions button{font-size:11px;padding:6px 8px}.year-history{margin-top:7px}.year-history summary{cursor:pointer;font-weight:800;font-size:12px}.year-history-item{border-top:1px solid #e5e7eb;padding:7px 0;font-size:12px}@media(max-width:650px){.student-bar{flex-wrap:wrap}.student-bar select{flex:1;min-width:140px}.student-list-row{grid-template-columns:auto 1fr}.student-list-actions{grid-column:2}} </style></head><body>
+<header><h1 id="appTitle">自立活動コンパイラ v1.65</h1><div style="font-size:11px;color:#cbd5e1">文章の一致ではなく「出来事の構造」を発見する</div><div class="student-bar"><span>生徒：</span><select id="studentSelect" aria-label="生徒を切り替える"></select><button type="button" id="studentManage">生徒管理</button></div></header><main><div class="layout"><aside class="sidebar">
+<div class="card"><h2>児童生徒</h2><label>氏名・識別名</label><input id="name" placeholder="Aさん"><label>年度</label><input id="schoolYear" inputmode="numeric" placeholder="2026"><label>学年・学級</label><input id="klass"><label>担任</label><input id="teacher"><label>現在の焦点</label><textarea id="focus"></textarea><button class="primary" id="saveStudent">保存</button></div>
+<div class="card"><h2>いつもの記録</h2><div class="notice">自立活動用に書き直さず、普段の記録をそのまま取り込みます。</div><label>種類</label><select id="source"><option>授業記録</option><option>授業評価</option><option>教材・支援メモ</option><option>ケース会議</option><option>保護者からの情報</option><option>その他</option></select><label>日付</label><input id="date" type="date"><label>既存の記録</label><textarea id="raw" placeholder="例：予定が急に変更になり、教室の入口で動けなくなった。予定表を見せると5分後に着席した。"></textarea><button class="primary" id="addRecord">記録を取り込む</button></div>
+<div class="card"><h2>データ</h2><button id="backup">バックアップ</button><button id="restoreBtn">復元</button><input id="file" type="file" accept=".json" style="display:none"><button id="print">計画を印刷</button><button class="red" id="wipe">データ削除</button></div>
+</aside><section>
+<div class="tabs"><button class="active" data-view="dash">①状況</button><button data-view="timeline">②記録</button><button data-view="patterns">③構造分析</button><button data-view="flow">④流れ図</button><button data-view="plan">⑤計画</button><button data-view="review">⑥計画後</button><button data-view="ai">⑦AI</button></div>
+<div id="dash" class="view active"><div class="card"><h2>計画の状態</h2><div id="dashbox"></div></div></div>
+<div id="timeline" class="view"><div class="card"><h2>学校生活タイムライン</h2><div class="record-filter"><label><input type="checkbox" id="showOffRecords"> 一時オフにした記録も表示</label><span class="muted">※オフの記録はAI分析・仮説・計画後評価から除外されます。</span></div><div id="timelinebox"></div></div></div>
+<div id="patterns" class="view"><div class="card"><h2>出来事の構造</h2><div class="notice">「予定変更→停止→予定表→着席」と「順番変更→停止→絵カード→参加」のように、表現が違っても構造が似た出来事をまとめます。</div><div id="patternbox"></div></div><div class="card"><h2>仮説を採用</h2><div id="hypbox"></div><textarea id="chosen"></textarea><button class="primary" id="saveHyp">この仮説を採用</button></div></div>
+<div id="flow" class="view"><div class="card"><h2>流れ図・現在版</h2><div id="flowbox"></div></div></div>
+<div id="plan" class="view"><div class="card"><h2>個別の指導計画・現在版</h2><div id="planbox"></div><label>指導すべき課題</label><textarea id="task"></textarea><label>指導目標</label><textarea id="goal"></textarea><label>具体的な指導内容・手立て</label><textarea id="support"></textarea><button class="primary" id="savePlan">計画を更新</button></div></div>
+<div id="review" class="view"><div class="card"><h2>計画後の変化</h2><div id="reviewbox"></div></div><div class="card reanalysis-card"><h2>仮説の再分析</h2>
+<div class="notice">計画後の記録を、当初の仮説を支持する材料・反証候補・要確認に分けて確認します。AI評価結果も次の分析材料に戻します。</div>
+<div id="reanalysisStats" class="reanalysis-grid"></div>
+<div id="evidenceBox" class="evidence-list"></div>
+<div class="review-ai-actions"><button type="button" class="primary" id="makeReanalysisPrompt">AIに渡す再分析データをコピー</button></div>
+<div id="reanalysisStatus" class="review-ai-status"></div>
+<details class="post-ai-prompt-details"><summary>AIへ渡す再分析データ</summary><textarea id="reanalysisPromptBox" readonly placeholder="「AIに渡す再分析データをコピー」を押すとここに表示されます"></textarea></details>
+<label>AIから返ってきた再分析結果</label>
+<textarea id="reanalysisAIBox" placeholder="ChatGPT等に貼り付けて得たJSONをここへ貼り付け"></textarea>
+<button type="button" class="primary" id="importReanalysisAI">再分析結果を反映</button>
+<div id="reanalysisAIResult"></div><div id="verificationCycle"></div><div id="recordChangeSignals" style="display:none"></div>
+</div>
+<div class="card"><h2>次の計画判断</h2>
+<div class="notice">AIの判定をそのまま採用するのではなく、計画を「維持・修正・再検討」のどれにするかを教師が決めます。この判断は次回AI分析・計画後評価の材料として保存されます。</div>
+<div class="plan-decision">
+  <h3>今回の判断</h3>
+  <div class="decision-buttons">
+    <button type="button" data-plan-decision="維持">計画を維持</button>
+    <button type="button" data-plan-decision="修正">計画を修正</button>
+    <button type="button" data-plan-decision="再検討">仮説・課題を再検討</button>
+  </div>
+  <label>判断理由（任意）</label>
+  <textarea id="planDecisionReason" placeholder="AI評価や記録を踏まえて、なぜこの判断にしたか"></textarea>
+  <div id="planDecisionStatus" class="decision-status"></div>
+</div>
+<div class="plan-history"><h3>計画の履歴</h3><div id="planHistoryBox"></div></div>
+</div>
+<div class="card review-ai-card"><h2>計画後のAI評価</h2><div class="notice">計画前と計画後の記録を比較し、当初の仮説が支持されたか、修正が必要か、支援の変化や般化が見られるかを分析します。改善をAIが断定するのではなく、根拠と反証を分けて提示します。</div><div class="review-ai-actions"><button class="primary" id="makePostPrompt">AI評価用データをコピー</button><button class="primary" id="runPostAI">APIで評価する</button></div><div id="postAIStatus" class="review-ai-status"></div><details class="post-ai-prompt-details"><summary>AIへ渡すデータを確認</summary><textarea id="postAIPromptBox" readonly placeholder="「AI評価用データをコピー」を押すとここに表示されます"></textarea></details><label>AI評価結果（ブラウザAIから戻したJSON）</label><textarea id="postAIBox" placeholder="ChatGPT等に貼り付けて得たJSONをここへ貼り付け"></textarea><button class="primary" id="importPostAI">AI評価を反映</button><div id="postAIResult"></div></div></div>
+<div id="ai" class="view">
+<div class="card"><h2 id="aiTitle">AI分析 v1.65</h2><div class="notice"><b>AIは「計画を書く」のではなく、記録から教育的な構造を発見します。</b><br>事実抽出 → 構造化 → 成立条件 → 仮説比較 → 反証 → 中心課題 → 必要な要素 → 6区分27項目、の順に分析します。</div>
+<label>利用方式</label><select id="aiMode"><option value="chat">ブラウザAIへコピー（API不要）</option><option value="api">APIで直接分析</option></select>
+<div id="apiSettings" style="display:none">
+<label>APIエンドポイント（OpenAI互換）</label><input id="aiEndpoint" placeholder="https://example.com/v1/chat/completions">
+<label>モデル名</label><input id="aiModel" placeholder="モデル名を入力">
+<label>APIキー（このブラウザには保存しません）</label><input id="aiKey" type="password" placeholder="sk-...">
+<p class="muted">※校務PCのブラウザから外部AIへ送信してよいという学校のルールがある場合のみ使用してください。APIキーは保存しません。</p>
+</div>
+<div style="margin-top:10px"><button class="primary" id="makePrompt">AIチャット用データをコピー</button><button class="primary" id="runAI" style="display:none">APIで分析する</button></div>
+<label>AIへ渡す内容</label><textarea id="promptbox" style="min-height:220px" placeholder="ここにAIへ渡すプロンプトが生成されます"></textarea>
+<div id="aistage" class="item" style="display:none"></div>
+<label>AIの回答を貼り付け</label><textarea id="aibox" style="min-height:180px" placeholder='AIから返ったJSONを貼り付け'></textarea>
+<button class="primary" id="importAI">AI結果を計画へ反映</button>
+<div id="aires"></div>
+<div id="aidetail" style="display:none"></div>
+</div>
+</div>
+</section></div></main><div id="toast"></div><button id="backToTop" class="top-float" type="button" aria-label="ページの最上部へ戻る" title="ページの最上部へ戻る">↑</button>
+<div id="studentReferenceDialog" class="record-edit-dialog" aria-hidden="true"><div class="record-edit-panel" role="dialog" aria-modal="true"><h2 id="studentReferenceTitle">過去データを参照</h2><div id="studentReferenceBox"></div><div class="record-edit-actions"><button type="button" id="closeStudentReference">閉じる</button></div></div></div>
+<div id="studentManageDialog" class="record-edit-dialog" aria-hidden="true"><div class="record-edit-panel" role="dialog" aria-modal="true"><h2>生徒管理</h2><div class="notice">現在の生徒だけを通常画面に表示します。転出した生徒はアーカイブに残し、必要なときだけ参照できます。</div><div id="studentList" style="margin-top:10px"></div><div class="record-edit-actions"><button type="button" id="closeStudentManage">閉じる</button></div></div></div>
+<div id="recordEditDialog" class="record-edit-dialog" aria-hidden="true">
+  <div class="record-edit-panel" role="dialog" aria-modal="true" aria-labelledby="recordEditTitle">
+    <h2 id="recordEditTitle">学校生活タイムラインの記録を修正</h2>
+    <input type="hidden" id="editRecordId">
+    <label>日時</label><input id="editRecordDate" type="date">
+    <label>種類</label>
+    <select id="editRecordSource">
+      <option>授業記録</option><option>授業評価</option><option>教材・支援メモ</option>
+      <option>ケース会議</option><option>保護者からの情報</option><option>その他</option>
+    </select>
+    <label>記録内容</label><textarea id="editRecordText" style="min-height:180px"></textarea>
+    <div class="record-edit-actions">
+      <button type="button" id="cancelRecordEdit">キャンセル</button>
+      <button type="button" class="primary" id="saveRecordEdit">変更を保存</button>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+"use strict";
+const APP_VERSION="v1.65";
+const KEY="jiritsu_compiler_v06";
+let AI={endpoint:"",model:"",mode:"chat"};
+let D={student:{name:"",year:"2026",klass:"",teacher:"",focus:""},records:[],hypothesis:"",plan:{task:"",goal:"",support:"",mextItems:[]},planCreatedAt:null,aiResult:null,aiReview:{hypothesisIndex:null,acceptedHypothesis:"",centralTaskAccepted:"",mextAccepted:[],teacherNotes:"",savedAt:null},aiReviewHistory:[],postAIResult:null};
+let APP={schemaVersion:1,activeStudentId:"",students:{}};
+function applyAppVersion(){
+  document.title="自立活動コンパイラ "+APP_VERSION;
+  const title=document.getElementById("appTitle"); if(title) title.textContent="自立活動コンパイラ "+APP_VERSION;
+  const aiTitle=document.getElementById("aiTitle"); if(aiTitle) aiTitle.textContent="AI分析 "+APP_VERSION;
+}
+function newStudentId(){return "s_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,8)}
+function blankCase(name="",year="2026"){return {student:{name,year,klass:"",teacher:"",focus:""},records:[],hypothesis:"",plan:{task:"",goal:"",support:"",mextItems:[]},planCreatedAt:null,aiResult:null,aiReview:{hypothesisIndex:null,acceptedHypothesis:"",centralTaskAccepted:"",mextAccepted:[],teacherNotes:"",savedAt:null},aiReviewHistory:[],postAIResult:null,reanalysis:{lastPrompt:"",savedAt:null,aiResult:null}}}
+function normalizeCase(x){
+  x=(x&&typeof x==="object")?x:blankCase();
+  x.student=(x.student&&typeof x.student==="object")?x.student:{name:"",year:"2026",klass:"",teacher:"",focus:""};
+  x.student.name=String(x.student.name??""); x.student.year=String(x.student.year??"2026"); x.student.klass=String(x.student.klass??""); x.student.teacher=String(x.student.teacher??""); x.student.focus=String(x.student.focus??"");
+  x.records=Array.isArray(x.records)?x.records.map(r=>({id:r?.id??(Date.now()+Math.random()),date:r?.date??"",source:r?.source??"授業記録",text:String(r?.text??""),active:r?.active!==false})).filter(r=>r.text.trim()):[];
+  x.hypothesis=String(x.hypothesis??"");
+  x.plan=(x.plan&&typeof x.plan==="object")?x.plan:{task:"",goal:"",support:"",mextItems:[]};
+  x.plan.task=String(x.plan.task??""); x.plan.goal=String(x.plan.goal??""); x.plan.support=String(x.plan.support??""); x.plan.mextItems=Array.isArray(x.plan.mextItems)?x.plan.mextItems:[];
+  x.planCreatedAt=x.planCreatedAt??null; x.planHistory=Array.isArray(x.planHistory)?x.planHistory:[];
+  x.planDecision=(x.planDecision&&typeof x.planDecision==="object")?x.planDecision:{status:"",reason:"",decidedAt:null};
+  x.planDecision.status=String(x.planDecision.status??""); x.planDecision.reason=String(x.planDecision.reason??""); x.planDecision.decidedAt=x.planDecision.decidedAt??null;
+  x.aiReview=(x.aiReview&&typeof x.aiReview==="object")?x.aiReview:{hypothesisIndex:null,acceptedHypothesis:"",centralTaskAccepted:"",mextAccepted:[],teacherNotes:"",savedAt:null};
+  x.aiReviewHistory=Array.isArray(x.aiReviewHistory)?x.aiReviewHistory.slice(-10):[]; x.postAIResult=x.postAIResult??null;
+  x.reanalysis=(x.reanalysis&&typeof x.reanalysis==="object")?x.reanalysis:{lastPrompt:"",savedAt:null,aiResult:null};
+  return x;
+}
+function migrateRecords(){
+  // 旧形式（単一生徒）を、最初の一人の生徒として自動移行する。
+  if(!APP || typeof APP!=="object" || !APP.students || typeof APP.students!=="object"){APP={schemaVersion:1,activeStudentId:"",students:{}}}
+  if(!APP.activeStudentId && Object.keys(APP.students).length===0){
+    const old=D; const id=newStudentId(); const c=normalizeCase(old); if(!c.student.name)c.student.name="未設定"; APP.students[id]={id,status:"active",createdAt:new Date().toISOString().slice(0,10),updatedAt:new Date().toISOString().slice(0,10),current:c,years:{}}; APP.activeStudentId=id;
+  }
+  Object.keys(APP.students).forEach(id=>{const s=APP.students[id]||{};s.id=id;s.status=s.status==="archived"?"archived":"active";s.current=normalizeCase(s.current||blankCase());s.years=(s.years&&typeof s.years==="object")?s.years:{};s.createdAt=s.createdAt||new Date().toISOString().slice(0,10);s.updatedAt=s.updatedAt||s.createdAt;APP.students[id]=s});
+  if(!APP.activeStudentId || !APP.students[APP.activeStudentId]) APP.activeStudentId=Object.keys(APP.students).find(id=>APP.students[id].status!=="archived")||Object.keys(APP.students)[0]||"";
+  if(!APP.activeStudentId){const id=newStudentId();APP.students[id]={id,status:"active",createdAt:new Date().toISOString().slice(0,10),updatedAt:new Date().toISOString().slice(0,10),current:blankCase("未設定"),years:{}};APP.activeStudentId=id}
+  D=APP.students[APP.activeStudentId].current;
+}
+function syncActive(){if(!APP.activeStudentId)return;const s=APP.students[APP.activeStudentId];if(s){s.current=D;s.updatedAt=new Date().toISOString().slice(0,10)}}
+function activeRecords(){return (D.records||[]).filter(r=>r.active!==false)}
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+function toast(s){const t=$("toast");t.textContent=s;t.style.display="block";clearTimeout(window._t);window._t=setTimeout(()=>t.style.display="none",1500)}
+function save(){try{syncActive();localStorage.setItem(KEY,JSON.stringify(APP));render();return true}catch(e){console.error(e);toast("保存できませんでした");return false}}
+function load(){try{const x=localStorage.getItem(KEY);if(x){const parsed=JSON.parse(x);if(parsed&&parsed.students)APP=parsed;else D=parsed}}catch(e){console.error(e)}migrateRecords();loadStudentFields();$("date").value=new Date().toISOString().slice(0,10);renderStudentSelector()}
+function loadStudentFields(){const s=D.student||{};$("name").value=s.name||"";$("schoolYear").value=s.year||"2026";$("klass").value=s.klass||"";$("teacher").value=s.teacher||"";$("focus").value=s.focus||""}
+function renderStudentSelector(){const sel=$("studentSelect");if(!sel)return;const list=Object.values(APP.students||{}).filter(s=>s.status!=="archived");sel.innerHTML=list.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.current?.student?.name||"未設定")+'</option>').join("");sel.value=APP.activeStudentId}
+
+const EVENTS=[
+["change","変化・予定変更",["予定変更","予定が変","急に","いつもと違","順番が変","変更","切り替え","切替"],"予測しにくい変化や活動の切替で見通しを持ちにくく、次の行動への移行に困難が生じている可能性。",["2．心理的な安定","4．環境の把握"]],
+["stop","行動停止・開始困難",["固ま","動け","動か","止ま","開始でき","始められ","立ち尽く","黙り込"],"状況を理解したり次の行動を選択したりすることに負荷が生じ、行動開始・切替に困難が生じている可能性。",["2．心理的な安定","4．環境の把握"]],
+["visual","視覚的手掛かり",["写真","カード","絵","視覚","予定表","タイマー","時計","手順","見通し","スケジュール"],"視覚的・具体的な手掛かりによって、見通しや手順を理解し、行動しやすくなる可能性。",["4．環境の把握"]],
+["prompt","大人の支援",["声かけ","声掛け","促す","促し","支援","援助","先生が","教師が","担任が","提示","見せ"],"具体的な促しや支援の量・方法が、行動の開始や継続に影響している可能性。",["2．心理的な安定","3．人間関係の形成","6．コミュニケーション"]],
+["communicate","伝達・援助要求",["伝え","要求","発語","会話","言葉","教えて","知らせ","助けて","困った"],"自分の状態や要求を、本人にとって使いやすい方法で相手に伝えることに困難がある可能性。",["6．コミュニケーション"]],
+["group","集団・対人",["友達","集団","順番","距離","貸して","共有","トラブル","一緒","相手"],"相手との距離、順番、役割など、人との関係を調整する場面に困難が生じている可能性。",["3．人間関係の形成"]],
+["sensory","健康・感覚",["疲","眠","体調","食","音","光","感覚","痛","暑","寒"],"体調、疲労、感覚刺激などの状態が、学校生活上の困難に影響している可能性。",["1．健康の保持","4．環境の把握"]],
+["motor","身体・動作",["着替え","姿勢","歩","走","手先","動作","ボタン","箸"],"身体の動かし方や一連の動作の調整に困難が生じている可能性。",["5．身体の動き"]]
+];
+function structure(text){return EVENTS.filter(e=>e[2].some(k=>text.includes(k))).map(e=>e[0])}
+function info(r){return{keys:structure(r.text),positive:/できた|できる|落ち着|参加|着席|開始|移れ|移行|成功|減った|増えた|自分から|一人で/.test(r.text),negative:/できな|困難|固ま|動け|止ま|拒否|泣|怒|パニック|難しかっ/.test(r.text),support:/写真|カード|絵|予定表|タイマー|手順|声かけ|声掛け|促し|支援|援助|提示|見せ/.test(r.text)}}
+function maskText(t){let x=String(t||"");const n=(D.student.name||"").trim();if(n)x=x.split(n).join("【本人】");return x.replace(/(児童|生徒|本人)\s*[：:＝=]\s*[^\s、。,，]+/g,"$1：【本人】");}
+function analyze(){return EVENTS.map(e=>{const rs=activeRecords().filter(r=>structure(r.text).includes(e[0]));return{e,rs,positive:rs.filter(r=>info(r).positive).length,negative:rs.filter(r=>info(r).negative).length,support:rs.filter(r=>info(r).support).length}}).filter(x=>x.rs.length).sort((a,b)=>b.rs.length-a.rs.length)}
+function hyp(){return D.hypothesis||(analyze()[0]?.e[3])||"まだ仮説を形成できる記録が不足しています。"}
+function task(){let h=hyp();if(h.includes("視覚的"))return"本人が使いやすい視覚的・具体的な手掛かりを活用し、見通しや手順を持って自分で行動できるようにする。";if(h.includes("変化"))return"変化や活動の切替場面で見通しを持ち、次の行動へ移る方法を身に付ける。";if(h.includes("伝える"))return"困った状態や要求を、本人にとって使いやすい方法で相手に伝えられるようにする。";return"困難が生じる条件とうまくいく条件を明らかにし、本人が自分で行動しやすくなる方法を身に付ける。"}
+function goal(){let h=hyp();if(h.includes("視覚的"))return"視覚的な手掛かりを確認しながら、次に必要な行動を自分で開始・継続する。";if(h.includes("変化"))return"予定変更や活動の切替時に、手掛かりを活用して次の活動へ移る。";if(h.includes("伝える"))return"困ったときに、本人にとって使いやすい方法で援助や要求を伝える。";return"有効な手掛かりを活用しながら、必要な行動を自分で進める。"}
+function related(after=false){
+  const source=activeRecords();
+  if(after)return source.filter(r=>!!D.planCreatedAt&&new Date(r.date)>=new Date(D.planCreatedAt));
+  let a=analyze().find(x=>x.e[3]===hyp());
+  if(!a)return[];
+  return a.rs.filter(r=>!D.planCreatedAt||new Date(r.date)<new Date(D.planCreatedAt));
+}
+function buildPrompt(){
+const records=activeRecords().slice().sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+const studentName=(D.student.name||"").trim();
+const mask=t=>{let x=String(t||"");if(studentName)x=x.split(studentName).join("【本人】");return x.replace(/(児童|生徒|本人)\s*[：:＝=]\s*[^\s、。,，]+/g,"$1：【本人】");};
+const payload={student:{name:"【本人】",klass:D.student.klass||"",focus:mask(D.student.focus||"")},records:records.map(r=>({id:r.id,date:r.date,source:r.source,text:maskText(r.text)})),currentHypothesis:D.hypothesis||"",teacherReview:D.aiReview||{},teacherReviewHistory:(D.aiReviewHistory||[]).slice(-5),verificationTarget:{hypothesisIndex:Number.isInteger(D.aiReview?.hypothesisIndex)?D.aiReview.hypothesisIndex:null,hypothesis:D.aiReview?.acceptedHypothesis||D.hypothesis||""},currentPlan:D.plan||{},planDecision:D.planDecision||{},planHistory:(D.planHistory||[]).slice(-5),postPlanAIResult:D.postAIResult||null,reanalysisAIResult:D.reanalysis?.aiResult||null};
+const mext=[
+"1 健康の保持|(1) 生活のリズムや生活習慣の形成に関すること。","1 健康の保持|(2) 病気の状態の理解と生活管理に関すること。","1 健康の保持|(3) 身体各部の状態の理解と養護に関すること。","1 健康の保持|(4) 障害の特性の理解と生活環境の調整に関すること。","1 健康の保持|(5) 健康状態の維持・改善に関すること。",
+"2 心理的な安定|(1) 情緒の安定に関すること。","2 心理的な安定|(2) 状況の理解と変化への対応に関すること。","2 心理的な安定|(3) 障害による学習上又は生活上の困難を改善・克服する意欲に関すること。",
+"3 人間関係の形成|(1) 他者とのかかわりの基礎に関すること。","3 人間関係の形成|(2) 他者の意図や感情の理解に関すること。","3 人間関係の形成|(3) 自己の理解と行動の調整に関すること。","3 人間関係の形成|(4) 集団への参加の基礎に関すること。",
+"4 環境の把握|(1) 保有する感覚の活用に関すること。","4 環境の把握|(2) 感覚や認知の特性についての理解と対応に関すること。","4 環境の把握|(3) 感覚の補助及び代行手段の活用に関すること。","4 環境の把握|(4) 感覚を総合的に活用した周囲の状況についての把握と状況に応じた行動に関すること。","4 環境の把握|(5) 認知や行動の手掛かりとなる概念の形成に関すること。",
+"5 身体の動き|(1) 姿勢と運動・動作の基本的技能に関すること。","5 身体の動き|(2) 姿勢保持と運動・動作の補助的手段の活用に関すること。","5 身体の動き|(3) 日常生活に必要な基本動作に関すること。","5 身体の動き|(4) 身体の移動能力に関すること。","5 身体の動き|(5) 作業に必要な動作と円滑な遂行に関すること。",
+"6 コミュニケーション|(1) コミュニケーションの基礎的能力に関すること。","6 コミュニケーション|(2) 言語の受容と表出に関すること。","6 コミュニケーション|(3) 言語の形成と活用に関すること。","6 コミュニケーション|(4) コミュニケーション手段の選択と活用に関すること。","6 コミュニケーション|(5) 状況に応じたコミュニケーションに関すること。"];
+return `あなたは特別支援学校の自立活動を分析する教育専門AIです。あなたの役割は「個別の指導計画の作文」ではなく、教師が日常的に残した記録から、見落とされやすい教育的パターンを発見し、流れ図の思考過程を可視化することです。診断・障害特性の断定・人格評価はしません。\n\n【絶対原則】\n1. 事実と解釈を分離する。記録にない事実を補わない。\n2. 「できない場面」だけでなく「できた場面」「成立した条件」を必ず探す。\n3. 表現・活動名が違っても、状況→困難→行動→支援→結果の構造が共通する記録をまとめる。\n4. 仮説は最低2案を比較する。ただし、言い換えただけの仮説を複数案として出さない。各仮説は異なる説明原理を持ち、同じ記録に対して異なる予測を生むものにする。各仮説の支持証拠・反証・説明できない記録・成立条件を示し、「この条件ならAを支持し、同じ条件でBなら説明しにくい」のように観察可能な違いまで示す。既存記録で違いが出ない場合は、無理に順位を付けず「まだ区別できない」とし、次の観察で区別できる条件を提示する。\n5. 「予定変更が苦手」のような表面的説明で止まらず、何が変わったのか、何の情報が不足したのか、どの支援で何が変わったのかまで分析する。
+11. 仮説同士は「どちらもありそう」で終わらせず、両者が異なる予測をする条件を探す。記録から区別できないなら、その限界自体を分析結果として示す。\n6. 中心課題は「一番目立つ困難」ではなく、複数の場面を説明し、指導による波及効果が期待できる教育的課題を候補にする。\n7. 6区分27項目は最初に分類せず、中心課題を達成するために必要な要素を分解した後、その要素と項目を対応付ける。各項目には「なぜ必要か」の根拠を付ける。根拠が弱い項目は選ばない。\n8. 指導内容は実際の学校生活で実施可能な具体性を持たせる。ただし記録にない支援効果を創作しない。\n9. 「まだ分からないこと」を必ず残し、次に観察すべき情報を提案する。\n10. 現在の仮説がある場合も無条件に肯定せず、記録から再検証する。\n\n【分析手順】\nSTEP1 事実抽出：日時・場面・きっかけ/条件・本人の行動・周囲の支援・結果を整理。\nSTEP2 構造化：各記録を「状況→困難/行動→支援/条件→結果」に変換。\nSTEP3 成立条件：うまくいった条件と困難が生じた条件を比較。\nSTEP4 構造クラスタ：表現が異なる記録でも同じ教育的構造ならまとめる。\nSTEP5 仮説比較：最低2仮説。ただ数を増やすのではなく、同じ記録を説明する「異なる説明」を作る。各仮説について支持証拠・反証・説明できない事例・成立条件を示し、他の仮説と何が違うのかを具体化する。特に、仮説Aなら起こりやすいが仮説Bなら起こりにくい「観察可能な違い」を必ず作る。既存記録だけでは区別できない場合は、そのことを明示し、次に条件を変えて観察すべき場面を提案する。\nSTEP6 中心課題：最も妥当な課題候補と、その選定理由を示す。\nSTEP7 必要な要素：中心課題を改善するために本人に必要な能力・経験・方法を分解。\nSTEP8 6区分27項目：下記の正式な項目から、必要なものだけを選び、各項目の根拠を示す。\n\n【6区分27項目：選択肢は必ずこの正式名称を使う】\n${mext.map(x=>"- "+x).join("\\n")}\n\n【出力】必ず次のJSONだけを返してください。Markdown、前置き、コードフェンスは禁止。\n{"facts":[{"recordDate":"","scene":"","trigger":"","behavior":"","support":"","result":""}],"patterns":[{"name":"","recordRefs":["日付や記録番号"],"structure":"状況→困難/行動→支援/条件→結果","difficulty":"","successfulConditions":"","hypothesis":"","evidence":[""],"counterEvidence":[""],"confidence":0}],"hypotheses":[{"hypothesis":"","rank":"第一候補|次点|保留","supportingEvidence":[""],"counterEvidence":[""],"explainedRecordIds":["対象データのid"],"hardToExplainRecordIds":["対象データのid"],"explainedRecords":["説明できる記録"],"hardToExplainRecords":["説明しにくい記録"],"conditions":["この仮説が成立しそうな条件"],"nextObservations":["この仮説を見分けるために次に観察すべきこと"],"differenceFromOthers":"他の仮説と比べた違い","confidence":0}],"discriminators":[{"hypothesisA":"仮説1","hypothesisB":"仮説2","condition":"両仮説を区別できる条件","observation":"次に観察する具体的な場面・条件","interpretation":"結果がAなら何を支持し、Bなら何を支持するか"}],"recommendedHypothesis":0,"centralTask":{"task":"","reason":""},"necessaryElements":[{"element":"","reason":""}],"mextItems":[{"item":"正式な6区分・項目名","reason":"必要な要素との対応根拠"}],"flow":{"actualCondition":"","schoolDifficulty":"","hypothesis":"","centralTask":"","goal":"","necessaryElements":"","concreteInstruction":""},"progression":{"stages":[{"period":"","supportLevel":"","behavior":"","evidence":[""],"interpretation":""}],"changeSummary":"","generalizationEvidence":[""],"remainingGaps":[""]},"teacherReviewFeedback":{"relation":"支持／修正を示唆／判断材料不足／前回判断なし","supportingEvidence":[""],"counterEvidence":[""],"newInformation":[""],"changeReason":"","nextDecisionQuestion":"","teacherReasonAssessment":{"relation":"判断理由を支持／判断理由と矛盾／判断理由だけでは判断不能／判断理由なし","supportingEvidence":[""],"counterEvidence":[""],"unconfirmed":[""],"nextQuestion":"","impactOnHypothesis":"判断理由が仮説比較・中心課題の選定に与える影響（なければ「影響なし」）"}},"nextObservations":["次に確認すべき情報"],"cautions":["断定を避けるための注意"]}\n\n【教師による前回の判断（ある場合）】\n${JSON.stringify(D.aiReview||{},null,2)}\n\n【教師が選択した「検証対象の仮説」】\n${JSON.stringify({hypothesisIndex:Number.isInteger(D.aiReview?.hypothesisIndex)?D.aiReview.hypothesisIndex:null,hypothesis:D.aiReview?.acceptedHypothesis||D.hypothesis||""},null,2)}\nこの仮説は「正しい仮説」ではなく、今回の検証で重点的に確かめる対象です。次の分析では、この仮説を必ず他の仮説と比較し、支持する記録だけでなく反証・説明しにくい記録を探してください。特に「検証対象の仮説」と最も競合する仮説を明示し、両者を見分ける条件・場面・観察結果を「discriminators」に具体化してください。検証対象を支持する材料が弱い、または別の仮説の方が記録をよく説明する場合は、そのことを明示してください。\n\n【現在の計画と計画判断】\n${JSON.stringify({plan:D.plan||{},planDecision:D.planDecision||{},planHistory:(D.planHistory||[]).slice(-5),postPlanAIResult:D.postAIResult||null,reanalysisAIResult:D.reanalysis?.aiResult||null},null,2)}\n\n【計画判断が「仮説・課題を再検討」の場合】\n教師が「仮説・課題を再検討」と判断している場合、現在の仮説・中心課題を正解として引き継がないでください。前回の仮説は比較対象として参照しつつ、今回の全記録から改めて複数の仮説を生成してください。前回仮説と異なる仮説が必要なら、明確に示してください。中心課題も再選定が必要か検討してください。\n\n【教師が入力した「判断理由」】\n${D.planDecision?.reason||"（入力なし）"}\n\n【教師が入力した「判断理由」の扱い】\n「判断理由」は、教師が記録やAI評価を踏まえて判断した根拠・疑問・気付きです。特に「仮説・課題を再検討」の場合、この理由を次の分析で必ず参照してください。ただし、判断理由そのものを事実や正しい解釈とはみなさず、今回の記録と照合してください。理由を支持する記録、理由と一致しない記録、まだ確認できない点を区別してください。教師の理由を手掛かりにしつつ、AI自身も反証を探し、必要なら別の仮説・中心課題を提示してください。さらに、出力の「teacherReviewFeedback.teacherReasonAssessment」に、判断理由そのものが今回の記録からどこまで支持されるか、そしてその判断理由が仮説比較・中心課題の選定を変える必要があるかを必ず整理してください。判断理由が具体的な内容を持たない場合は、無理に意味づけせず「判断理由だけでは判断不能」または「判断理由なし」としてください。\n\n【計画後のAI評価・再分析結果の扱い】\n計画後AI評価と再分析結果は、次の分析で検証を継続するための材料です。これらを正解として引き継がず、今回の全記録と照合してください。再分析が「反証あり」「仮説再設定」を示している場合も、記録から独立して再検討してください。\n\n【教師判断の履歴（直近5回）】\n${JSON.stringify((D.aiReviewHistory||[]).slice(-5),null,2)}\n\n【教師判断の扱い方】\n前回の教師判断は「正解」ではありません。今回の記録を独立して分析したうえで、前回判断を支持する記録、揺るがす記録、判断材料が増えた点を照合してください。前回と同じ結論になった場合も、今回の記録から新たな根拠が増えたのかを確認してください。前回判断と異なる場合は、どの記録が違いを生んだのかを示してください。教師判断に迎合せず、反証を探してください。\n\n【対象データ】\n${JSON.stringify(payload,null,2)}`;
+}
+function cleanAIText(text){
+let t=String(text||"").trim();
+t=t.replace(/^```(?:json)?\s*/i,"").replace(/\s*```$/i,"").trim();
+const a=t.indexOf("{"); const b=t.lastIndexOf("}");
+if(a>=0&&b>a)t=t.slice(a,b+1);
+return t;
+}
+function setAIResult(obj){
+if(!obj||typeof obj!=="object") throw new Error("JSONではありません");
+if(!Array.isArray(obj.hypotheses)||!obj.centralTask||!obj.flow) throw new Error("必要な分析項目がありません");
+const idx=Number.isInteger(obj.recommendedHypothesis)?obj.recommendedHypothesis:0;
+const chosen=obj.hypotheses[idx]||obj.hypotheses[0];
+D.aiResult=obj;
+if(chosen?.hypothesis)D.hypothesis=chosen.hypothesis;
+if(obj.centralTask.task||obj.flow.centralTask)D.plan.task=obj.centralTask.task||obj.flow.centralTask;
+if(obj.flow.goal)D.plan.goal=obj.flow.goal;
+if(obj.flow.concreteInstruction)D.plan.support=obj.flow.concreteInstruction;
+if(!D.plan.mextItems.length && Array.isArray(obj.mextItems)) D.plan.mextItems=obj.mextItems.map(x=>x.item).filter(Boolean);
+save();
+renderAIResult();renderPostAIResult();
+}
+function buildPostPrompt(){
+const mask=t=>{let x=String(t||"");const n=(D.student.name||"").trim();if(n)x=x.split(n).join("【本人】");return x.replace(/(児童|生徒|本人)\s*[：:＝=]\s*[^\s、。,，]+/g,"$1：【本人】");};
+const pre=activeRecords().filter(r=>!D.planCreatedAt||new Date(r.date)<new Date(D.planCreatedAt)).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+const post=activeRecords().filter(r=>D.planCreatedAt&&new Date(r.date)>=new Date(D.planCreatedAt)).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+return `あなたは特別支援学校の自立活動の評価分析AIです。個別の指導計画の作文ではなく、計画前後の通常記録から「当初の仮説が支持されたか」「支援量や本人の自発性がどう変化したか」「別場面への般化があるか」を分析してください。改善を断定せず、事実・傾向・解釈・反証・未確認事項を分離してください。記録にない事実は作らないでください。\n\n【計画】\n${JSON.stringify({createdAt:D.planCreatedAt,task:D.plan.task,goal:D.plan.goal,support:D.plan.support,hypothesis:D.hypothesis,teacherReview:D.aiReview,planDecision:D.planDecision,planHistory:D.planHistory.slice(-5)},null,2)}\n\n【計画前の記録】\n${JSON.stringify(pre.map(r=>({date:r.date,source:r.source,text:maskText(r.text)})),null,2)}\n\n【計画後の記録】\n${JSON.stringify(post.map(r=>({date:r.date,source:r.source,text:maskText(r.text)})),null,2)}\n\n【出力】Markdown禁止。次のJSONだけを返してください。\n{"verdict":"仮説を支持／一部支持／修正が必要／判断材料不足のいずれか","summary":"","hypothesisEvaluation":{"supportingEvidence":[""],"counterEvidence":[""],"unexplainedRecords":[""],"confidence":0},"supportChange":{"before":"","after":"","interpretation":""},"independenceChange":{"before":"","after":"","interpretation":""},"generalization":{"evidence":[""],"interpretation":""},"effectiveConditions":[""],"remainingIssues":[""],"nextObservations":[""]}`;
+}
+function renderPostAIResult(){
+const o=D.postAIResult,box=$("postAIResult"); if(!box)return;
+if(!o){box.innerHTML="";return;}
+box.innerHTML='<div class="review-ai-result"><div class="verdict">判定：'+esc(o.verdict||"")+'</div><div style="margin-top:6px">'+esc(o.summary||"")+'</div><h3>仮説の評価</h3><b>支持</b><ul>'+((o.hypothesisEvaluation?.supportingEvidence||[]).map(x=>'<li>'+esc(x)+'</li>').join('')||'<li>なし</li>')+'</ul><b>反証・説明できない記録</b><ul>'+((o.hypothesisEvaluation?.counterEvidence||[]).concat(o.hypothesisEvaluation?.unexplainedRecords||[]).map(x=>'<li>'+esc(x)+'</li>').join('')||'<li>なし</li>')+'</ul><div class="meta">確信度：'+esc(o.hypothesisEvaluation?.confidence??"")+'</div><h3>支援量の変化</h3><p><b>計画前：</b>'+esc(o.supportChange?.before||"")+'<br><b>計画後：</b>'+esc(o.supportChange?.after||"")+'<br>'+esc(o.supportChange?.interpretation||"")+'</p><h3>本人の自発性・自立の変化</h3><p><b>計画前：</b>'+esc(o.independenceChange?.before||"")+'<br><b>計画後：</b>'+esc(o.independenceChange?.after||"")+'<br>'+esc(o.independenceChange?.interpretation||"")+'</p><h3>般化</h3><ul>'+((o.generalization?.evidence||[]).map(x=>'<li>'+esc(x)+'</li>').join('')||'<li>確認できず</li>')+'</ul><p>'+esc(o.generalization?.interpretation||"")+'</p><h3>有効だった条件</h3><ul>'+((o.effectiveConditions||[]).map(x=>'<li>'+esc(x)+'</li>').join('')||'<li>なし</li>')+'</ul><h3>残っている課題</h3><ul>'+((o.remainingIssues||[]).map(x=>'<li>'+esc(x)+'</li>').join('')||'<li>なし</li>')+'</ul><h3>次に確認すること</h3><ul>'+((o.nextObservations||[]).map(x=>'<li>'+esc(x)+'</li>').join('')||'<li>なし</li>')+'</ul></div>';
+}
+function postStatus(msg){const el=$("postAIStatus");if(el){el.textContent=msg;el.classList.add('show');}}
+function reanalysisStatus(msg){const el=$("reanalysisStatus");if(el){el.textContent=msg;el.classList.add('show');}}
+function renderAIResult(){
+const obj=D.aiResult;
+const stage=$("aistage"),res=$("aires"),detail=$("aidetail");
+if(!stage||!res||!detail)return;
+if(!obj){stage.style.display="none";res.innerHTML="";detail.style.display="none";detail.innerHTML="";return;}
+const chosen=(obj.hypotheses||[])[Number.isInteger(obj.recommendedHypothesis)?obj.recommendedHypothesis:0]||(obj.hypotheses||[])[0];
+stage.style.display="block";
+stage.className="ai-skeleton";
+stage.innerHTML='<div class="ai-skeleton-title">AI分析の骨格</div><div class="ai-counts"><span>事実 '+(obj.facts?.length||0)+'件</span><span>構造 '+(obj.patterns?.length||0)+'件</span><span>仮説 '+(obj.hypotheses?.length||0)+'案</span><span>必要な要素 '+(obj.necessaryElements?.length||0)+'件</span><span>6区分27項目 '+(obj.mextItems?.length||0)+'件</span></div>'+(obj.nextObservations?.length?'<div class="ai-next"><b>次に確認すべきこと</b>'+obj.nextObservations.map(x=>'<div>・'+esc(x)+'</div>').join("")+'</div>':"");
+
+res.innerHTML='<div class="ai-overview"><div class="ai-overview-title">AI分析の要約</div><div class="ai-result-notice"><b>採用仮説：</b>'+esc(chosen?.hypothesis||"なし")+'<br><b>中心課題：</b>'+esc(obj.centralTask?.task||obj.flow?.centralTask||"")+'<br><b>選定項目：</b>'+esc((obj.mextItems||[]).map(x=>x.item).join("／"))+'</div><div class="muted" style="margin-top:7px">詳細は下の項目を開いて確認できます。</div></div>';
+
+const section=(title,body,open=false)=>'<div class="ai-detail-section"><details '+(open?'open':'')+'><summary>'+title+'</summary><div class="ai-detail-body">'+body+'</div></details></div>';
+const list=(arr,fn)=>Array.isArray(arr)&&arr.length?'<ul>'+arr.map(fn).join("")+'</ul>':'<div class="muted">記録なし</div>';
+let html='';
+html+=section('① 事実',list(obj.facts,x=>'<li><b>'+esc(x.recordDate||"")+' '+esc(x.scene||"")+'</b><br>きっかけ：'+esc(x.trigger||"")+'<br>行動：'+esc(x.behavior||"")+'<br>支援：'+esc(x.support||"")+'<br>結果：'+esc(x.result||"")+'</li>'));
+html+=section('② 出来事の構造',list(obj.patterns,x=>'<li><b>'+esc(x.name||"")+'</b><br>'+esc(x.structure||"")+'<br><span class="meta">困難：'+esc(x.difficulty||"")+' ／ 成立条件：'+esc(x.successfulConditions||"")+' ／ 確信度：'+esc(x.confidence??"")+'</span><br>根拠：'+esc((x.evidence||[]).join("／"))+'<br>反証：'+esc((x.counterEvidence||[]).join("／"))+'</li>'));
+html+=section('③ 仮説比較',list(obj.hypotheses,x=>'<li><b>'+esc(x.hypothesis||"")+'</b><br><span class="tag">'+esc(x.rank||"順位未設定")+'</span><br>支持：'+esc((x.supportingEvidence||[]).join("／"))+'<br>反証：'+esc((x.counterEvidence||[]).join("／"))+'<br>説明できる記録：'+esc((x.explainedRecords||[]).join("／"))+'<br>説明しにくい記録：'+esc((x.hardToExplainRecords||x.unexplainedRecords||[]).join("／"))+'<br>成立条件：'+esc((x.conditions||[]).join("／"))+'<br>他の仮説との違い：'+esc(x.differenceFromOthers||"")+'<br>次に見分けるための観察：'+esc((x.nextObservations||[]).join("／"))+'<br><span class="meta">確信度（参考値）：'+esc(x.confidence??"")+'</span></li>'));
+html+=section('④ 中心課題', '<div class="ai-focus"><b>'+esc(obj.centralTask?.task||"")+'</b><p>'+esc(obj.centralTask?.reason||"")+'</p></div>',true);
+html+=section('⑤ 必要な要素',list(obj.necessaryElements,x=>'<li><b>'+esc(x.element||"")+'</b><br>'+esc(x.reason||"")+'</li>'));
+html+=section('⑥ 6区分27項目を選んだ根拠',list(obj.mextItems,x=>'<li><b>'+esc(x.item||"")+'</b><br>'+esc(x.reason||"")+'</li>'));
+const prog=obj.progression||{};let progBody='';if(Array.isArray(prog.stages)&&prog.stages.length){progBody+='<div class="ai-timeline">'+prog.stages.map(s=>'<div class="ai-timeline-card"><div class="period">'+esc(s.period||'時期不明')+'</div><div class="support-level">支援・成立条件：'+esc(s.supportLevel||'記録なし')+'</div><div class="evidence"><b>行動：</b>'+esc(s.behavior||'')+'<br><b>根拠：</b>'+esc((s.evidence||[]).join('／'))+'<br><b>解釈：</b>'+esc(s.interpretation||'')+'</div></div>').join('')+'</div>';}if(prog.changeSummary)progBody+='<div class="ai-change-summary"><b>変化の要約</b>'+esc(prog.changeSummary)+'</div>';if(Array.isArray(prog.generalizationEvidence)&&prog.generalizationEvidence.length)progBody+='<div class="ai-change-summary"><b>般化・場面の広がり</b>'+prog.generalizationEvidence.map(x=>'<div>・'+esc(x)+'</div>').join('')+'</div>';if(Array.isArray(prog.remainingGaps)&&prog.remainingGaps.length)progBody+='<div class="ai-gap"><b>まだ判断できないこと</b>'+prog.remainingGaps.map(x=>'<div>・'+esc(x)+'</div>').join('')+'</div>';if(!progBody)progBody='<div class="muted">時系列の変化情報はAIから返されていません。</div>';html+=section('⑦ 時系列の変化・支援量の変化',progBody,true);html+=section('⑧ 次に確認すべきこと',list(obj.nextObservations,x=>'<li>'+esc(x)+'</li>'));
+html+=section('⑨ 注意点',list(obj.cautions,x=>'<li>'+esc(x)+'</li>'));
+const trf=obj.teacherReviewFeedback||{};
+let trBody='<div class="ai-review-feedback"><div class="tag">'+esc(trf.relation||'前回判断との照合なし')+'</div>';
+trBody+='<h4>前回判断を支持する材料</h4>'+list(trf.supportingEvidence,x=>'<li>'+esc(x)+'</li>');
+trBody+='<h4>前回判断を揺るがす材料</h4>'+list(trf.counterEvidence,x=>'<li>'+esc(x)+'</li>');
+trBody+='<h4>今回新たに分かったこと</h4>'+list(trf.newInformation,x=>'<li>'+esc(x)+'</li>');
+trBody+='<h4>判断が変わる理由</h4><p>'+esc(trf.changeReason||'')+'</p><h4>次に教師が判断するときの問い</h4><p>'+esc(trf.nextDecisionQuestion||'')+'</p>';
+const tra=trf.teacherReasonAssessment||{};
+trBody+='<div class="ai-reason-assessment"><h4>教師の「判断理由」を記録と照合</h4><div class="tag">'+esc(tra.relation||'判断材料なし')+'</div><b>理由を支持する記録</b>'+list(tra.supportingEvidence,x=>'<li>'+esc(x)+'</li>')+'<b>理由と矛盾する記録</b>'+list(tra.counterEvidence,x=>'<li>'+esc(x)+'</li>')+'<b>まだ確認できないこと</b>'+list(tra.unconfirmed,x=>'<li>'+esc(x)+'</li>')+'<h4>次に確認する問い</h4><p>'+esc(tra.nextQuestion||'')+'</p><p><b>仮説・中心課題への影響：</b>'+esc(tra.impactOnHypothesis||'')+'</p></div></div>';
+html+=section('⑨.5 前回の教師判断との照合',trBody,true);
+// ⑩以降を⑨と同じAI分析結果エリア内に配置し、後続レンダーのエラーで表示全体が途切れないようにする
+html+='<div id="aiAfter9"></div>';
+detail.style.display="block";detail.innerHTML=html;
+const after9=$("aiAfter9");
+if(after9){
+  after9.innerHTML='<div id="aireview" style="display:none"></div>';
+}
+const safeRender=fn=>{try{fn();}catch(e){console.error("AI表示エラー",e);}};
+safeRender(renderAIReview);
+}
+function renderHypothesisEvidenceMatrix(){
+const obj=D.aiResult,box=$("hypothesisEvidenceMatrix");
+if(!box)return;
+const hs=Array.isArray(obj?.hypotheses)?obj.hypotheses:[];
+const records=activeRecords().slice().sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+if(hs.length<2||!records.length){box.style.display="none";box.innerHTML="";return;}
+const statusFor=(h,r)=>{
+  const id=String(r.id);
+  const ex=(h.explainedRecordIds||[]).map(String);
+  const hard=(h.hardToExplainRecordIds||[]).map(String);
+  if(ex.includes(id))return "説明";
+  if(hard.includes(id))return "説明しにくい";
+  return "言及なし";
+};
+let html='<div class="card"><h2>仮説×記録の証拠マトリクス</h2><div class="notice">各記録を、複数の仮説からどう説明できるか並べて確認します。AIが記録IDを正しく対応付けられなかった場合は「言及なし」と表示されます。これは優劣の点数ではありません。</div><div style="overflow-x:auto"><table class="evidence-matrix"><thead><tr><th>記録</th>';
+hs.forEach((h,i)=>{html+='<th>仮説'+(i+1)+'<br><span class="muted">'+esc(h.rank||'')+'</span></th>';});
+html+='</tr></thead><tbody>';
+records.forEach(r=>{
+  html+='<tr><th><span class="meta">'+esc(r.date)+' ／ '+esc(r.source)+'</span><br>'+esc(r.text.slice(0,70))+(r.text.length>70?'…':'')+'</th>';
+  hs.forEach(h=>{const st=statusFor(h,r);html+='<td><span class="matrix-'+(st==='説明'?'yes':st==='説明しにくい'?'hard':'none')+'">'+esc(st)+'</span></td>';});
+  html+='</tr>';
+});
+html+='</tbody></table></div></div>';
+box.style.display="block";box.innerHTML=html;
+}
+function renderHypothesisDiscriminators(){
+const obj=D.aiResult,box=$("hypothesisDiscriminators");
+if(!box)return;
+const hs=Array.isArray(obj?.hypotheses)?obj.hypotheses:[];
+if(hs.length<2){box.style.display="none";box.innerHTML="";return;}
+const records=activeRecords().slice().sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+const statusFor=(h,r)=>{const id=String(r.id);const ex=(h.explainedRecordIds||[]).map(String);const hard=(h.hardToExplainRecordIds||[]).map(String);if(ex.includes(id))return "説明";if(hard.includes(id))return "説明しにくい";return "言及なし";};
+const ds=Array.isArray(obj?.discriminators)?obj.discriminators:[];
+let html='<div class="card"><h2>仮説を見分ける決定材料</h2><div class="notice">「どんな条件・場面なら仮説AとBの違いが表れるか」を示します。次の観察で仮説を見分けるための材料であり、AIが正解を決めるものではありません。</div>';
+if(ds.length){html+=ds.map(d=>'<div class="discriminator-pair"><h3>'+esc(d.hypothesisA||"仮説A")+' と '+esc(d.hypothesisB||"仮説B")+' の見分け方</h3><div class="discriminator-side"><b>条件：</b>'+esc(d.condition||"")+'<br><b>次に観察する場面：</b>'+esc(d.observation||"")+'<br><b>判断の手掛かり：</b>'+esc(d.interpretation||"")+'</div></div>').join('');}
+const pairCards=[];
+for(let i=0;i<hs.length;i++){for(let j=i+1;j<hs.length;j++){
+const aOnly=[],bOnly=[];
+records.forEach(r=>{const a=statusFor(hs[i],r),b=statusFor(hs[j],r);if(a==="説明"&&b==="説明しにくい")aOnly.push(r);if(b==="説明"&&a==="説明しにくい")bOnly.push(r);});
+if(aOnly.length||bOnly.length){let body='<div class="discriminator-pair"><h3>記録から見た仮説'+(i+1)+' と 仮説'+(j+1)+' の違い</h3>';if(aOnly.length)body+='<div class="discriminator-side"><b>仮説'+(i+1)+'を支持し、仮説'+(j+1)+'では説明しにくい記録</b><ul>'+aOnly.map(r=>'<li><span class="meta">'+esc(r.date)+' ／ '+esc(r.source)+'</span><br>'+esc(r.text)+'</li>').join('')+'</ul></div>';if(bOnly.length)body+='<div class="discriminator-side"><b>仮説'+(j+1)+'を支持し、仮説'+(i+1)+'では説明しにくい記録</b><ul>'+bOnly.map(r=>'<li><span class="meta">'+esc(r.date)+' ／ '+esc(r.source)+'</span><br>'+esc(r.text)+'</li>').join('')+'</ul></div>';body+='</div>';pairCards.push(body);}
+}}
+html+=pairCards.join('');
+if(!ds.length&&!pairCards.length)html+='<div class="muted">現在の記録から、仮説を見分ける具体的な材料はまだ抽出できません。</div>';
+html+='</div>';box.style.display="block";box.innerHTML=html;
+}
+
+function renderHypothesisCompare(){
+const obj=D.aiResult,box=$("hypothesisCompare");
+if(!box)return;
+const hs=Array.isArray(obj?.hypotheses)?obj.hypotheses:[];
+if(hs.length<2){box.style.display="none";box.innerHTML="";return;}
+const labels=["第一候補","次点","保留"];
+let html='<div class="card"><h2>仮説の競合比較</h2><div class="notice">一つの仮説を正解として決めるのではなく、同じ記録をそれぞれの仮説でどこまで説明できるかを比較します。順位はAIの暫定整理であり、最終判断は教師が行います。</div><div class="compare">';
+hs.forEach((h,i)=>{
+const rank=h.rank||labels[i]||"保留";
+html+='<div class="item"><h3>仮説'+(i+1)+' <span class="tag">'+esc(rank)+'</span></h3><p><b>'+esc(h.hypothesis||"")+'</b></p><b>説明できる記録</b><ul>'+((h.explainedRecords||[]).map(x=>'<li>'+esc(x)+'</li>').join('')||'<li>記載なし</li>')+'</ul><b>説明しにくい・反証となる記録</b><ul>'+((h.hardToExplainRecords||h.unexplainedRecords||[]).concat(h.counterEvidence||[]).map(x=>'<li>'+esc(x)+'</li>').join('')||'<li>記載なし</li>')+'</ul><b>成立条件</b><p>'+esc((h.conditions||[]).join('／')||'記載なし')+'</p><b>他の仮説との違い</b><p>'+esc(h.differenceFromOthers||'記載なし')+'</p><b>次に見分けるための観察</b><p>'+esc((h.nextObservations||[]).join('／')||'記載なし')+'</p><button type="button" class="primary" data-compare-h="'+i+'">この仮説を検証対象にする</button></div>';
+});
+html+='</div></div>';
+box.style.display="block";box.innerHTML=html;
+box.querySelectorAll("[data-compare-h]").forEach(b=>b.onclick=()=>{const i=Number(b.dataset.compareH),h=hs[i];if(!h)return;D.aiReview=D.aiReview||{};D.aiReview.hypothesisIndex=i;D.aiReview.acceptedHypothesis=h.hypothesis||"";save();toast("仮説"+(i+1)+"を検証対象にしました");renderAIReview();});
+renderHypothesisEvidenceMatrix();
+}
+function renderAIReview(){
+const obj=D.aiResult, box=$("aireview");
+if(!obj){box.style.display="none";box.innerHTML="";return;}
+box.style.display="block";
+const hs=Array.isArray(obj.hypotheses)?obj.hypotheses:[];
+const chosenIdx=Number.isInteger(D.aiReview?.hypothesisIndex)?D.aiReview.hypothesisIndex:null;
+let html='<div class="ai-review ai-review-compact"><h3>⑩ 教師の判断をAI分析へ戻す</h3><div class="muted">AIの提案をそのまま採用せず、教師の判断を保存できます。保存内容は次回AI分析の入力に含まれます。</div>';
+html+='<div id="reviewActionStatus" class="review-action-status"></div>';
+html+='<h3 style="margin-top:14px">仮説を選ぶ</h3>';
+html+=hs.length?hs.map((h,i)=>'<div class="review-choice '+(chosenIdx===i?'selected':'')+'"><b>仮説'+(i+1)+'</b>：'+esc(h.hypothesis||'')+(chosenIdx===i?'<span class="review-selected-mark">検証対象</span>':'')+'<br><span class="meta">確信度：'+esc(h.confidence??'')+'</span><br><button type="button" data-review-h="'+i+'">'+(chosenIdx===i?'検証対象に設定済み':'この仮説を検証対象にする')+'</button></div>').join(''):'<div class="muted">AIから仮説が返っていません。</div>';
+html+='<label>教師が採用した仮説（必要なら修正）</label><textarea id="reviewHyp">'+esc(D.aiReview?.acceptedHypothesis||'')+'</textarea>';
+html+='<label>中心課題についての教師判断</label><textarea id="reviewTask">'+esc(D.aiReview?.centralTaskAccepted||obj.centralTask?.task||'')+'</textarea>';
+html+='<h3 style="margin-top:14px">27項目についての教師判断</h3><div class="review-checks">';
+(obj.mextItems||[]).forEach((m,i)=>{const checked=(D.aiReview?.mextAccepted||[]).includes(m.item);html+='<label><input type="checkbox" data-review-m="'+i+'" '+(checked?'checked':'')+'> <span><b>'+esc(m.item||'')+'</b><br><span class="meta">AIの根拠：'+esc(m.reason||'')+'</span></span></label>';});
+html+='</div><label>教師のメモ・修正理由・追加で分かったこと</label><textarea id="reviewNotes" placeholder="例：予定変更だけでなく、教師が離れた場面でも同じ停止が起きている。">'+esc(D.aiReview?.teacherNotes||'')+'</textarea>';
+html+='<button type="button" class="primary" id="saveAIReview">この判断を保存して次回分析に使う</button><div class="review-status">'+(D.aiReview?.savedAt?'前回保存：'+esc(D.aiReview.savedAt)+' ／ 履歴：'+(D.aiReviewHistory?.length||0)+'回':'まだ教師判断は保存されていません')+'</div></div>';
+
+box.innerHTML=html;
+
+box.onclick=(ev)=>{
+const hbtn=ev.target.closest('[data-review-h]');
+if(hbtn){
+const i=Number(hbtn.dataset.reviewH);
+if(Number.isInteger(i) && hs[i]){
+D.aiReview=D.aiReview||{};
+D.aiReview.hypothesisIndex=i;
+D.aiReview.acceptedHypothesis=hs[i].hypothesis||"";
+renderAIReview();
+const st=$("reviewActionStatus");
+if(st){st.textContent='仮説'+(i+1)+'を検証対象に設定しました。必要なら下の文章を修正し、「この判断を保存」を押してください。';st.classList.add('show');}
+}
+return;
+}
+if(ev.target.closest('#saveAIReview')){
+const selected=[...box.querySelectorAll('[data-review-m]:checked')].map(x=>obj.mextItems[+x.dataset.reviewM]?.item).filter(Boolean);
+const prev=D.aiReview||{};
+const newReview={
+hypothesisIndex:Number.isInteger(prev.hypothesisIndex)?prev.hypothesisIndex:null,
+acceptedHypothesis:($("reviewHyp")?.value||"").trim(),
+centralTaskAccepted:($("reviewTask")?.value||"").trim(),
+mextAccepted:selected,
+teacherNotes:($("reviewNotes")?.value||"").trim(),
+savedAt:new Date().toISOString().slice(0,10)
+};
+D.aiReviewHistory=Array.isArray(D.aiReviewHistory)?D.aiReviewHistory:[];
+const hasMeaningfulPrevious=String(prev.acceptedHypothesis||prev.centralTaskAccepted||prev.teacherNotes||"").trim()||((prev.mextAccepted||[]).length>0);
+if(hasMeaningfulPrevious){ D.aiReviewHistory.push({...prev}); D.aiReviewHistory=D.aiReviewHistory.slice(-10); }
+D.aiReview=newReview;
+D.hypothesis=D.aiReview.acceptedHypothesis||D.hypothesis;
+D.plan.task=D.aiReview.centralTaskAccepted||D.plan.task;
+D.plan.mextItems=Array.isArray(D.aiReview.mextAccepted)?D.aiReview.mextAccepted.slice():D.plan.mextItems;
+try{localStorage.setItem(KEY,JSON.stringify(D));}catch(e){}
+const st=$("reviewActionStatus");
+if(st){st.textContent='✓ 教師の判断を保存しました。次回AI分析で、この判断と新しい記録を照合します。';st.classList.add('show');}
+renderAIReview();
+const st2=$("reviewActionStatus");
+if(st2){st2.textContent='✓ 教師の判断を保存しました。次回AI分析で、この判断と新しい記録を照合します。';st2.classList.add('show');}
+render();
+}
+};
+}
+function render(){
+const a=analyze(),rel=related(false),post=related(true);
+$("dashbox").innerHTML='<div class="kpi"><div><b>'+D.records.length+'</b><span class="muted">既存記録</span></div><div><b>'+a.length+'</b><span class="muted">構造候補</span></div><div><b>'+rel.length+'</b><span class="muted">仮説関連</span></div><div><b>'+post.length+'</b><span class="muted">計画後関連</span></div></div><h3>現在の焦点</h3><div class="notice">'+esc(D.student.focus||"未設定")+'</div><h3>現在の仮説</h3><div class="notice">'+esc(hyp())+'</div>';
+const showOff=$("showOffRecords")?.checked||false;
+const timelineRecords=(D.records||[]).slice().filter(r=>showOff||r.active!==false).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+$("timelinebox").innerHTML=timelineRecords.length?timelineRecords.map(r=>{
+  const off=r.active===false;
+  const tags=structure(r.text).map(k=>EVENTS.find(e=>e[0]===k)[1]).join("・")||"構造未検出";
+  return '<div class="item record-item '+(off?'is-off':'')+'"><div class="meta">'+esc(r.date)+' ／ '+esc(r.source)+' '+(off?'<span class="record-status">【一時オフ：分析対象外】</span>':'')+'</div><p>'+esc(r.text)+'</p><span class="tag">'+esc(tags)+'</span><div class="record-actions"><button type="button" data-edit-record="'+r.id+'">編集</button><button type="button" data-toggle-record="'+r.id+'">'+(off?'分析対象に戻す':'一時オフにする')+'</button></div></div>';
+}).join(""):"<p class='muted'>まだ記録がありません。</p>";
+document.querySelectorAll("[data-edit-record]").forEach(btn=>btn.onclick=()=>openRecordEdit(Number(btn.dataset.editRecord)));
+document.querySelectorAll("[data-toggle-record]").forEach(btn=>btn.onclick=()=>toggleRecord(Number(btn.dataset.toggleRecord)));
+
+$("patternbox").innerHTML=a.length?a.map(x=>'<div class="item"><b>'+esc(x.e[1])+'</b> <span class="tag">'+x.rs.length+'件</span><p>'+esc(x.e[3])+'</p><span class="muted">うまくいった記述 '+x.positive+'件 ／ 困難 '+x.negative+'件 ／ 支援を含む '+x.support+'件<br>関連項目：'+x.e[4].join("、")+'</span></div>').join(""):"<p class='muted'>記録を増やしてください。</p>";
+$("hypbox").innerHTML=a.map((x,i)=>'<div class="item"><b>'+esc(x.e[1])+'</b><p>'+esc(x.e[3])+'</p><button class="primary" data-h="'+i+'">この仮説を候補にする</button></div>').join("");$("chosen").value=D.hypothesis;
+document.querySelectorAll("[data-h]").forEach(b=>b.onclick=()=>{$("chosen").value=a[+b.dataset.h].e[3]});
+let c=a.find(x=>x.e[3]===hyp())||a[0],items=(D.plan.mextItems&&D.plan.mextItems.length?D.plan.mextItems:(D.aiResult?.mextItems||[]).map(x=>x.item).filter(Boolean));
+$("flowbox").innerHTML='<div class="flow"><div class="node"><b>① 実態・学校生活上の事実</b><br>'+esc(D.student.focus||D.records.slice(0,3).map(r=>r.text).join("／")||"記録なし")+'</div><div class="arrow">↓</div><div class="node"><b>② 学校生活上の困難</b><br>'+esc(hyp().split("。")[0])+'</div><div class="arrow">↓</div><div class="node"><b>③ 背景・要因の仮説</b><br>'+esc(hyp())+'</div><div class="arrow">↓</div><div class="node"><b>④ 指導すべき課題</b><br>'+esc(D.plan.task||task())+'</div><div class="arrow">↓</div><div class="node"><b>⑤ 指導目標</b><br>'+esc(D.plan.goal||goal())+'</div><div class="arrow">↓</div><div class="node"><b>⑥ 関連する自立活動の項目候補</b><br>'+esc(items.join("、"))+'</div></div>';
+let t=D.plan.task||task(),g=D.plan.goal||goal(),s=D.plan.support||"既存の教育記録から、有効だった支援・条件と結果を継続的に拾い上げる。",mi=D.plan.mextItems||[];$("planbox").innerHTML='<div class="notice"><b>'+esc(D.student.name||"児童生徒")+'</b> ／ '+esc(D.student.klass)+'<br>計画作成日：'+esc(D.planCreatedAt||"未設定")+'<br>現在の仮説：'+esc(hyp())+'</div><h3>実態</h3><p>'+esc(D.student.focus||D.records.slice(0,3).map(r=>r.text).join("／")||"記録なし")+'</p><h3>指導すべき課題</h3><p>'+esc(t)+'</p><h3>指導目標</h3><p>'+esc(g)+'</p><h3>具体的な指導内容・手立て</h3><p>'+esc(s)+'</p><h3>教師が選択した自立活動の項目</h3><p>'+esc(mi.length?mi.join("、"):"未選択")+'</p>';$("task").value=t;$("goal").value=g;$("support").value=s;
+if(!D.planCreatedAt)$("reviewbox").innerHTML='<div class="notice">まだ計画後データがありません。計画更新後の通常記録を追跡します。</div>';
+else if(!post.length)$("reviewbox").innerHTML='<div class="notice">計画作成日以降の有効な記録はまだありません。</div>';
+else {
+  const relatedPost=post.filter(r=>structure(r.text).length);
+  $("reviewbox").innerHTML='<div class="notice"><b>計画作成日以降の記録：'+post.length+'件</b><br>仮説と直接関連しない記録も含め、計画後の変化を確認します。'+(relatedPost.length?'（構造が検出された記録：'+relatedPost.length+'件）':'')+'</div><div class="compare"><div class="item"><b>うまくいった・自分からできた記述</b>'+post.filter(r=>info(r).positive).slice(0,12).map(r=>'<p><span class="meta">'+esc(r.date)+'</span> ・'+esc(r.text)+'</p>').join("")+'</div><div class="item"><b>困難が続いた記述</b>'+post.filter(r=>info(r).negative).slice(0,12).map(r=>'<p><span class="meta">'+esc(r.date)+'</span> ・'+esc(r.text)+'</p>').join("")+'</div></div><div class="item"><b>計画後の全記録</b>'+post.slice(0,30).map(r=>'<p><span class="meta">'+esc(r.date)+' ／ '+esc(r.source)+'</span><br>'+esc(r.text)+'</p>').join("")+'</div>';
+};renderAIResult();
+renderPlanDecision();
+}
+function buildReanalysisData(){
+  const pre=activeRecords().filter(r=>!D.planCreatedAt||new Date(r.date)<new Date(D.planCreatedAt));
+  const post=activeRecords().filter(r=>D.planCreatedAt&&new Date(r.date)>=new Date(D.planCreatedAt));
+  const pos=post.filter(r=>info(r).positive), neg=post.filter(r=>info(r).negative);
+  return {preCount:pre.length,postCount:post.length,positive:pos.length,negative:neg.length,
+    hypothesis:D.hypothesis,plan:D.plan,decision:D.planDecision,aiReview:D.aiReview,postAIResult:D.postAIResult,reanalysisAIResult:D.reanalysis?.aiResult||null,
+    pre:pre.slice(-30).map(r=>({date:r.date,source:r.source,text:maskText(r.text)})),
+    post:post.slice(-50).map(r=>({date:r.date,source:r.source,text:maskText(r.text)}))};
+}
+function buildReanalysisPrompt(){
+  const d=buildReanalysisData();
+  return `あなたは特別支援学校の自立活動を分析する教育専門AIです。
+目的は教師の判断を置き換えることではなく、日常記録から当初の仮説がどこまで支持され、どこで修正が必要かを明確にすることです。
+診断・障害特性・人格評価は禁止。記録にないことを推測しないでください。
+
+【当初の仮説】${d.hypothesis}
+【現在の計画】${JSON.stringify(d.plan)}
+【教師の判断】${JSON.stringify(d.decision)}
+【教師が入力した判断理由】${JSON.stringify(d.decision?.reason||"")}
+判断理由は重要な手掛かりとして参照する。ただし正解とはみなさず、計画前後の記録と照合して、支持する材料・反証・未確認事項を分ける。
+【前回AI評価】${JSON.stringify(d.postAIResult)}
+【これまでの再分析結果】${JSON.stringify(d.reanalysisAIResult||null)}
+
+【計画前記録】
+${JSON.stringify(d.pre,null,2)}
+
+【計画後記録】
+${JSON.stringify(d.post,null,2)}
+
+次のJSONだけを返してください。
+{
+ "hypothesis_status":"支持|一部支持|反証あり|判断材料不足",
+ "supporting_evidence":["具体的な記録"],
+ "counter_evidence":["仮説では説明しにくい記録"],
+ "new_pattern":["計画後に新しく見えた教育的パターン"],
+ "conditions":["うまくいった場面に共通する条件"],
+ "remaining_issue":"現時点で残る中心的な課題",
+ "next_question":"次に記録で確かめるべき問い",
+ "recommended_action":"計画維持|計画修正|仮説再設定|追加観察"
+}
+件数だけで改善を断定せず、具体的記録を根拠にしてください。`;
+}
+function renderReanalysis(){
+  const d=buildReanalysisData(), st=$("reanalysisStats"), box=$("evidenceBox");
+  if(st)st.innerHTML='<div class="reanalysis-stat"><b>'+d.preCount+'</b><span class="muted">計画前</span></div><div class="reanalysis-stat"><b>'+d.postCount+'</b><span class="muted">計画後</span></div><div class="reanalysis-stat"><b>'+d.positive+'</b><span class="muted">肯定的記述</span></div><div class="reanalysis-stat"><b>'+d.negative+'</b><span class="muted">困難の記述</span></div>';
+  if(box){
+    box.innerHTML=d.post.length?d.post.slice(-12).map(r=>{
+      const rr=activeRecords().find(x=>x.date===r.date&&x.text===r.text)||{text:r.text};
+      const inf=info(rr), type=inf.positive?"支持材料":inf.negative?"反証候補":"中立・要確認";
+      const cls=inf.positive?"support":inf.negative?"counter":"neutral";
+      return '<div class="evidence-row"><span class="badge '+cls+'">'+type+'</span><div><span class="meta">'+esc(r.date)+' ／ '+esc(r.source)+'</span><br>'+esc(r.text)+'</div><span class="muted">'+(structure(r.text).join("・")||"—")+'</span></div>';
+    }).join(""):"<div class='muted'>計画後の有効な記録がまだありません。</div>";
+  }
+}
+function renderReanalysisAIResult(){
+  const o=D.reanalysis?.aiResult, box=$("reanalysisAIResult"), input=$("reanalysisAIBox");
+  if(!box)return;
+  if(input && document.activeElement!==input) input.value=o?JSON.stringify(o,null,2):"";
+  if(!o){box.innerHTML="";renderVerificationCycle();renderRecordChangeSignals();return;}
+  const list=(a,empty="なし")=>Array.isArray(a)&&a.length?'<ul>'+a.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>':'<div class="muted">'+empty+'</div>';
+  box.innerHTML='<div class="review-ai-result"><div class="verdict">仮説の状態：'+esc(o.hypothesis_status||"")+'</div>'+
+    '<h3>支持する材料</h3>'+list(o.supporting_evidence)+
+    '<h3>反証・説明しにくい材料</h3>'+list(o.counter_evidence)+
+    '<h3>新しく見えたパターン</h3>'+list(o.new_pattern)+
+    '<h3>成立条件</h3>'+list(o.conditions)+
+    '<h3>残された課題</h3><p>'+esc(o.remaining_issue||"")+'</p>'+
+    '<h3>次に確かめる問い</h3><p>'+esc(o.next_question||"")+'</p>'+
+    '<h3>推奨アクション</h3><p>'+esc(o.recommended_action||"")+'</p></div>';
+  renderVerificationCycle();renderRecordChangeSignals();
+}
+function renderVerificationCycle(){
+  const box=$("verificationCycle"); if(!box)return;
+  const o=D.reanalysis?.aiResult, decision=D.planDecision?.status||"未判断";
+  if(!o){box.innerHTML="";return;}
+  const status=o.hypothesis_status||"判断材料不足";
+  const action=o.recommended_action||"未提示";
+  const q=o.next_question||"次に確かめる問いはまだありません。";
+  const cls=status.includes("反証")?"counter":status.includes("支持")?"support":"neutral";
+  box.innerHTML='<div class="card verification-cycle"><h2>仮説検証サイクル・現在地</h2><div class="notice">AIの再分析結果を「次の観察・教師判断」につなげるための現在地です。AIの推奨は決定ではありません。</div>'+
+    '<div class="cycle-grid"><div><span class="meta">現在の仮説</span><p><b>'+esc(D.hypothesis||"未設定")+'</b></p></div><div><span class="meta">再分析の状態</span><p><span class="badge '+cls+'">'+esc(status)+'</span></p></div><div><span class="meta">教師の計画判断</span><p><b>'+esc(decision)+'</b></p></div><div><span class="meta">AIの推奨アクション</span><p><b>'+esc(action)+'</b></p></div></div>'+
+    '<div class="cycle-next"><b>次に確かめる問い</b><p>'+esc(q)+'</p></div></div>';
+}
+function renderRecordChangeSignals(){
+  const box=$("recordChangeSignals"); if(!box)return;
+  const all=activeRecords();
+  const pre=all.filter(r=>!D.planCreatedAt||new Date(r.date)<new Date(D.planCreatedAt));
+  const post=all.filter(r=>D.planCreatedAt&&new Date(r.date)>=new Date(D.planCreatedAt));
+  if(!D.planCreatedAt||!post.length){box.style.display="none";box.innerHTML="";return;}
+  const countKeys=arr=>{const m={};arr.forEach(r=>structure(r.text).forEach(k=>m[k]=(m[k]||0)+1));return m};
+  const a=countKeys(pre),b=countKeys(post),keys=[...new Set([...Object.keys(a),...Object.keys(b)])];
+  const newKeys=keys.filter(k=>!a[k]&&b[k]);
+  const goneKeys=keys.filter(k=>a[k]&&!b[k]);
+  const continued=keys.filter(k=>a[k]&&b[k]);
+  const supportPre=pre.filter(r=>info(r).support).length, supportPost=post.filter(r=>info(r).support).length;
+  const positivePre=pre.filter(r=>info(r).positive).length, positivePost=post.filter(r=>info(r).positive).length;
+  const negativePre=pre.filter(r=>info(r).negative).length, negativePost=post.filter(r=>info(r).negative).length;
+  const structureLabels={
+    change:'予定・状況の変化', stop:'行動の停止・開始の難しさ', visual:'視覚的な手掛かり', prompt:'大人からの促し・支援',
+    communicate:'伝達・援助を求める行動', group:'集団・人との関わり', sensory:'体調・感覚刺激の影響', motor:'身体の動き・動作',
+    positive:'肯定的な記述', negative:'困難に関する記述', support:'支援に関する記述'
+  };
+  const label=k=>structureLabels[k]||k;
+  const recordRow=r=>'<div class="change-evidence-row"><span class="change-evidence-meta">'+esc(r.date||'日付なし')+' ／ '+esc(r.source||'記録')+'</span><span>'+esc(r.text||'')+'</span></div>';
+  const recordList=(arr,empty)=>arr.length?arr.map(recordRow).join(''):'<div class="muted">'+empty+'</div>';
+  const item=(k,title,kind)=>{
+    const preHits=pre.filter(r=>structure(r.text).includes(k));
+    const postHits=post.filter(r=>structure(r.text).includes(k));
+    const summary=title+' <span class="change-count">計画前 '+preHits.length+'件 → 計画後 '+postHits.length+'件</span>';
+    return '<details class="change-signal-item"><summary>'+summary+'</summary><div class="change-evidence-grid">'+
+      '<div class="change-evidence"><div class="change-evidence-title">計画前の該当記録</div>'+recordList(preHits,'該当する記録はありません。')+'</div>'+
+      '<div class="change-evidence"><div class="change-evidence-title">計画後の該当記録</div>'+recordList(postHits,'該当する記録はありません。')+'</div>'+
+      '</div></details>';
+  };
+  const listBlock=(title,items,empty)=>'<div class="change-signal-block"><b>'+title+'</b>'+
+    (items.length?'<div class="change-signal-list">'+items.map(k=>item(k,label(k))).join('')+'</div>':'<div class="muted">'+empty+'</div>')+'</div>';
+  box.style.display="block";
+  box.innerHTML='<div class="card"><h2>記録から見える変化の兆候（AIを使わない整理）</h2>'+
+    '<div class="notice">計画前後の記録に含まれる構造や記述の出現状況を機械的に並べています。項目を開くと、その項目に該当した実際の記録を確認できます。増減は「改善」や「悪化」を意味せず、仮説を検証するための観察材料です。</div>'+ 
+    listBlock('計画後に新しく現れた構造',newKeys,'新しく現れた構造はありません。')+
+    listBlock('計画前にはあったが計画後に見られない構造',goneKeys,'該当する構造はありません。')+
+    listBlock('計画前後の両方に見られる構造',continued,'共通する構造はありません。')+
+    '<div class="change-signal-stats"><span>肯定的記述：'+positivePre+' → '+positivePost+'</span><span>困難の記述：'+negativePre+' → '+negativePost+'</span><span>支援に関する記述：'+supportPre+' → '+supportPost+'</span></div>'+ 
+    '<div class="muted">※これは記録の件数・キーワード構造の変化を示すだけで、因果関係や指導効果を判定するものではありません。</div></div>';
+}
+function renderPlanDecision(){
+  renderReanalysis();
+  renderReanalysisAIResult();
+  const reason=$("planDecisionReason");
+  if(reason && document.activeElement!==reason) reason.value=D.planDecision?.reason||"";
+  const st=$("planDecisionStatus");
+  if(st){
+    const r=D.planDecision?.reason||"";
+    st.innerHTML=D.planDecision?.status
+      ? "✓ 現在の判断："+esc(D.planDecision.status)+" ／ "+esc(D.planDecision.decidedAt||"")+(r?"<br><span class=\"muted\">判断理由："+esc(r)+"</span>":"")
+      : "まだ今回の計画判断は保存されていません。";
+  }
+  document.querySelectorAll("[data-plan-decision]").forEach(btn=>{
+    btn.classList.toggle("selected",btn.dataset.planDecision===D.planDecision?.status);
+  });
+  const box=$("planHistoryBox");
+  if(box){
+    const h=D.planHistory||[];
+    box.innerHTML=h.length?h.slice().reverse().map((p,i)=>
+      '<details><summary>'+esc(p.date||"日付不明")+' ／ '+esc(p.task||"課題未設定")+'</summary><p><b>仮説：</b>'+esc(p.hypothesis||"")+'<br><b>目標：</b>'+esc(p.goal||"")+'<br><b>手立て：</b>'+esc(p.support||"")+(Array.isArray(p.mextItems)&&p.mextItems.length?'<br><b>自立活動：</b>'+esc(p.mextItems.join("、")):"")+(p.decision?.status?'<br><b>計画終了時の判断：</b>'+esc(p.decision.status)+(p.decision.reason?' ／ '+esc(p.decision.reason):""):"")+'</p></details>'
+    ).join(""):"<div class='muted'>まだ計画の更新履歴はありません。</div>";
+  }
+}
+function openRecordEdit(id){
+  const r=(D.records||[]).find(x=>Number(x.id)===id); if(!r)return;
+  $("editRecordId").value=String(r.id);
+  $("editRecordDate").value=r.date||"";
+  $("editRecordSource").value=r.source||"授業記録";
+  $("editRecordText").value=r.text||"";
+  $("recordEditDialog").classList.add("show");
+  $("recordEditDialog").setAttribute("aria-hidden","false");
+  $("editRecordText").focus();
+}
+function closeRecordEdit(){
+  $("recordEditDialog").classList.remove("show");
+  $("recordEditDialog").setAttribute("aria-hidden","true");
+}
+function toggleRecord(id){
+  const r=(D.records||[]).find(x=>Number(x.id)===id); if(!r)return;
+  r.active=r.active===false;
+  save();
+  toast(r.active===false?"記録を一時オフにしました":"記録を分析対象に戻しました");
+}
+$("makeReanalysisPrompt").onclick=async()=>{
+  try{
+    const p=buildReanalysisPrompt();
+    D.reanalysis=D.reanalysis||{};
+    D.reanalysis.lastPrompt=p;
+    D.reanalysis.savedAt=new Date().toISOString().slice(0,10);
+    $("reanalysisPromptBox").value=p;
+    const d=$("reanalysisPromptBox").closest("details"); if(d)d.open=true;
+    save();
+    try{await navigator.clipboard.writeText(p);reanalysisStatus("✓ 再分析用データを生成し、クリップボードへコピーしました。AIへ貼り付けてください。");}
+    catch(e){reanalysisStatus("✓ 再分析用データを表示しました。欄内を手動でコピーしてください。");}
+  }catch(e){reanalysisStatus("再分析用データの生成に失敗："+e.message);}
+};
+$("importReanalysisAI").onclick=()=>{
+  try{
+    const text=cleanAIText($("reanalysisAIBox").value);
+    const obj=JSON.parse(text);
+    if(!obj||typeof obj!=="object")throw new Error("JSONではありません");
+    D.reanalysis=D.reanalysis||{};
+    D.reanalysis.aiResult=obj;
+    D.reanalysis.aiResultSavedAt=new Date().toISOString().slice(0,10);
+    save();
+    reanalysisStatus("✓ 再分析結果を反映し、保存しました。");
+    renderReanalysisAIResult();
+  }catch(e){reanalysisStatus("再分析結果のJSON形式を確認してください。");}
+};
+$("cancelRecordEdit").onclick=closeRecordEdit;
+$("recordEditDialog").onclick=e=>{if(e.target.id==="recordEditDialog")closeRecordEdit()};
+$("saveRecordEdit").onclick=()=>{
+  const id=Number($("editRecordId").value);
+  const r=(D.records||[]).find(x=>Number(x.id)===id);
+  if(!r)return;
+  const date=$("editRecordDate").value;
+  const text=$("editRecordText").value.trim();
+  if(!date||!text){toast("日時と記録内容を入力してください");return}
+  r.date=date;
+  r.source=$("editRecordSource").value;
+  r.text=text;
+  save();
+  closeRecordEdit();
+  toast("記録を修正しました");
+};
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("recordEditDialog")?.classList.contains("show"))closeRecordEdit()});
+$("saveStudent").onclick=()=>{D.student={name:$("name").value.trim(),year:$("schoolYear").value.trim()||"2026",klass:$("klass").value.trim(),teacher:$("teacher").value.trim(),focus:$("focus").value.trim()};save();renderStudentSelector();toast("児童情報を保存しました")};
+$("addRecord").onclick=()=>{let x=$("raw").value.trim();if(!x){toast("既存の記録を入力してください");return}D.records.unshift({id:Date.now(),date:$("date").value,source:$("source").value,text:x,active:true});$("raw").value="";save();toast("記録を取り込みました")};
+$("saveHyp").onclick=()=>{let x=$("chosen").value.trim();if(!x){toast("仮説を選択してください");return}D.hypothesis=x;save();toast("仮説を採用しました")};
+$("savePlan").onclick=()=>{
+  const next={task:$("task").value.trim(),goal:$("goal").value.trim(),support:$("support").value.trim(),mextItems:Array.isArray(D.plan.mextItems)?D.plan.mextItems.slice():[]};
+  const today=new Date().toISOString().slice(0,10);
+  const hasCurrent=!!(D.planCreatedAt && (D.plan.task||D.plan.goal||D.plan.support));
+  const changed=hasCurrent && (next.task!==D.plan.task || next.goal!==D.plan.goal || next.support!==D.plan.support || JSON.stringify(next.mextItems)!==JSON.stringify(D.plan.mextItems||[]));
+  const startingNextCycle=hasCurrent && !!D.planDecision?.status && changed;
+  if(startingNextCycle){
+    D.planHistory.push({date:D.planCreatedAt,task:D.plan.task,goal:D.plan.goal,support:D.plan.support,mextItems:Array.isArray(D.plan.mextItems)?D.plan.mextItems.slice():[],hypothesis:D.hypothesis,decision:{...(D.planDecision||{})}});
+    if(D.planHistory.length>20)D.planHistory=D.planHistory.slice(-20);
+    D.plan=next;
+    D.planCreatedAt=today;
+    D.planDecision={status:"",reason:"",decidedAt:null};
+    save();
+    toast("新しい計画サイクルを開始しました。以前の計画は履歴に保存しました");
+  }else{
+    D.plan={...D.plan,...next};
+    if(!D.planCreatedAt)D.planCreatedAt=today;
+    save();
+    toast("計画を保存しました");
+  }
+};
+if($("refresh"))$("refresh").onclick=()=>{render();toast("構造を再分析しました")};
+$("backup").onclick=()=>{syncActive();let b=new Blob([JSON.stringify(APP,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="自立活動コンパイラ_backup.json";a.click()};
+$("restoreBtn").onclick=()=>$("file").click();$("file").onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);APP=(x&&x.students)?x:{schemaVersion:1,activeStudentId:"",students:{}};if(!APP.activeStudentId||!APP.students[APP.activeStudentId])APP.activeStudentId=Object.keys(APP.students)[0]||"";migrateRecords();loadStudentFields();save();renderStudentSelector();toast("復元しました")}catch(x){toast("読み込み失敗")}};r.readAsText(f)};
+$("print").onclick=()=>{
+show("plan",document.querySelector('[data-view="plan"]'));
+setTimeout(()=>{
+const areas=[...document.querySelectorAll('#plan textarea')];
+areas.forEach(el=>{el.dataset.printHeight=el.style.height;el.style.height='auto';el.style.height=Math.max(el.scrollHeight,90)+'px';el.classList.add('print-expanded')});
+window.print();
+},150);
+};
+window.addEventListener('afterprint',()=>{document.querySelectorAll('#plan textarea.print-expanded').forEach(el=>{el.style.height=el.dataset.printHeight||'';el.classList.remove('print-expanded')})});
+$("wipe").onclick=()=>{if(confirm("現在の生徒のデータをすべて削除しますか？")){delete APP.students[APP.activeStudentId];APP.activeStudentId=Object.keys(APP.students).find(id=>APP.students[id].status!=="archived")||Object.keys(APP.students)[0]||"";if(!APP.activeStudentId){const id=newStudentId();APP.students[id]={id,status:"active",createdAt:new Date().toISOString().slice(0,10),updatedAt:new Date().toISOString().slice(0,10),current:blankCase("未設定"),years:{}};APP.activeStudentId=id}D=APP.students[APP.activeStudentId].current;save();loadStudentFields();renderStudentSelector();toast("生徒データを削除しました")}};
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>show(b.dataset.view,b));
+// 判断理由は入力した時点で保存し、タブ移動やrender()で消えないようにする。
+const planDecisionReason=$("planDecisionReason");
+if(planDecisionReason){
+  planDecisionReason.addEventListener("input",()=>{
+    D.planDecision=D.planDecision&&typeof D.planDecision==="object"?D.planDecision:{status:"",reason:"",decidedAt:null};
+    D.planDecision.reason=planDecisionReason.value;
+    try{localStorage.setItem(KEY,JSON.stringify(D));}catch(err){}
+  });
+}
+// 計画判断ボタンはrender()のたびにイベントを付け直さず、1回だけ確実に登録する。
+document.addEventListener("click",e=>{
+  const btn=e.target.closest("[data-plan-decision]");
+  if(!btn)return;
+  const status=btn.dataset.planDecision;
+  if(!status)return;
+  D.planDecision={status,reason:($("planDecisionReason")?.value||"").trim(),decidedAt:new Date().toISOString().slice(0,10)};
+  if(status==="再検討"){D.planDecision.previousHypothesis=D.hypothesis||"";D.planDecision.previousTask=D.plan?.task||"";D.planDecision.reconsiderationRequestedAt=D.planDecision.decidedAt;}
+  try{localStorage.setItem(KEY,JSON.stringify(D));}catch(err){console.error(err);toast("保存できませんでした");return;}
+  document.querySelectorAll("[data-plan-decision]").forEach(b=>b.classList.toggle("selected",b===btn));
+  const st=$("planDecisionStatus");
+  if(st)st.textContent="✓ 現在の判断："+status+" ／ "+D.planDecision.decidedAt;
+  toast("計画判断を保存しました");
+});
+function archiveCurrentYear(s){const y=String(D.student.year||new Date().getFullYear());s.years=s.years||{};s.years[y]=JSON.parse(JSON.stringify(D));}
+function renderStudentManage(){const box=$("studentList");if(!box)return;const all=Object.values(APP.students||{});box.innerHTML='';
+  const active=all.filter(s=>s.status!=="archived"), archived=all.filter(s=>s.status==="archived");
+  box.innerHTML='<h3>現在の生徒</h3>'+ (active.length?active:[]).map(s=>studentRow(s,false)).join('') + '<div style="margin-top:14px"><h3>アーカイブ</h3>'+ (archived.length?archived:[]).map(s=>studentRow(s,true)).join('') + (archived.length?'':'<div class="muted">なし</div>')+'</div>';
+  box.innerHTML += '<div style="margin-top:12px"><label>新年度</label><input id="manageYear" inputmode="numeric" placeholder="2027"><label>新年度の学級</label><input id="manageKlass" placeholder="1年A組"><label>新年度の担任</label><input id="manageTeacher" placeholder="担任名"><div style="margin-top:8px"><button type="button" class="primary" id="addStudent">＋ 生徒を追加</button><button type="button" id="newYear">現在の生徒を新年度へ</button><button type="button" id="newYearAll">全員を新年度へ</button><button type="button" id="applyYearInfo">選択した生徒に新年度情報を設定</button><button type="button" id="exportChecked">選択した生徒を書き出す</button><button type="button" id="importStudents">引き継ぎファイルを読み込む</button><input id="studentImportFile" type="file" accept=".json" style="display:none"></div></div>';
+  box.querySelectorAll('[data-student-action="switch"]').forEach(b=>b.onclick=()=>switchStudent(b.dataset.id));
+  box.querySelectorAll('[data-student-action="reference"]').forEach(b=>b.onclick=()=>referenceStudent(b.dataset.id));
+  box.querySelectorAll('[data-student-action="archive"]').forEach(b=>b.onclick=()=>toggleArchive(b.dataset.id));
+  box.querySelectorAll('[data-student-action="export"]').forEach(b=>b.onclick=()=>exportStudents([b.dataset.id]));
+  const add=$("addStudent");if(add)add.onclick=()=>{const id=newStudentId();APP.students[id]={id,status:"active",createdAt:new Date().toISOString().slice(0,10),updatedAt:new Date().toISOString().slice(0,10),current:blankCase("",new Date().getFullYear().toString()),years:{}};APP.activeStudentId=id;D=APP.students[id].current;save();loadStudentFields();renderStudentSelector();renderStudentManage();toast("新しい生徒を追加しました")};
+  const ny=$("newYear");if(ny)ny.onclick=startNewYear;
+  const nya=$("newYearAll");if(nya)nya.onclick=startNewYearAll;
+  const ex=$("exportChecked");if(ex)ex.onclick=()=>exportStudents();
+  const apply=$('applyYearInfo');if(apply)apply.onclick=()=>{const ids=[...box.querySelectorAll('[data-export-id]:checked')].map(x=>x.dataset.exportId);if(!ids.length){toast('対象の生徒を選択してください');return}const year=$('manageYear')?.value.trim();const klass=$('manageKlass')?.value.trim()||'';const teacher=$('manageTeacher')?.value.trim()||'';if(!year){toast('新年度を入力してください');return}ids.forEach(id=>{const s=APP.students[id];if(!s)return;s.current=normalizeCase(s.current);s.current.student.year=year;s.current.student.klass=klass;s.current.student.teacher=teacher;s.updatedAt=new Date().toISOString().slice(0,10)});if(APP.students[APP.activeStudentId])D=APP.students[APP.activeStudentId].current;save();renderStudentManage();toast(ids.length+'人の新年度情報を設定しました')};
+  const im=$("importStudents"),fi=$("studentImportFile");if(im&&fi){im.onclick=()=>fi.click();fi.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{importStudentBundle(JSON.parse(r.result));renderStudentManage()}catch(err){toast("引き継ぎファイルを読み込めませんでした")}};r.readAsText(f)}}
+}
+function studentRow(s,archived){const c=s.current||blankCase();const y=esc(c.student?.year||"");const k=esc(c.student?.klass||"");const t=esc(c.student?.teacher||"");const years=Object.keys(s.years||{}).sort().reverse();return '<div class="student-list-row '+(archived?'archived':'')+'"><input type="checkbox" data-export-id="'+esc(s.id)+'" aria-label="'+esc(c.student?.name||"未設定")+'を引き継ぎ対象にする"><div class="student-list-main"><b>'+esc(c.student?.name||"未設定")+'</b><span>'+y+'年度 ／ '+k+(t?' ／ '+t:'')+(years.length?' ／ 過去年度 '+years.length+'件':'')+'</span></div><div class="student-list-actions">'+(!archived?'<button type="button" data-student-action="switch" data-id="'+esc(s.id)+'">開く</button>':'<button type="button" data-student-action="reference" data-id="'+esc(s.id)+'">参照</button>')+'<button type="button" data-student-action="export" data-id="'+esc(s.id)+'">書き出す</button><button type="button" data-student-action="archive" data-id="'+esc(s.id)+'">'+(archived?'復帰':'アーカイブ')+'</button></div></div>'}
+function switchStudent(id){if(!APP.students[id])return;syncActive();APP.activeStudentId=id;D=APP.students[id].current;loadStudentFields();renderStudentSelector();$("studentManageDialog").classList.remove("show");save();toast((D.student.name||"生徒")+'を表示しました')}
+function toggleArchive(id){const s=APP.students[id];if(!s)return;if(id===APP.activeStudentId&&s.status!=="archived"){const activeCount=Object.values(APP.students).filter(x=>x.status!=="archived").length;if(activeCount<=1){toast("最後の1人はアーカイブできません");return}}s.status=s.status==="archived"?"active":"archived";if(id===APP.activeStudentId&&s.status==="archived"){const next=Object.values(APP.students).find(x=>x.status!=="archived");if(next){APP.activeStudentId=next.id;D=next.current;loadStudentFields();}}save();renderStudentSelector();renderStudentManage();}
+function referenceStudent(id){const s=APP.students[id];if(!s)return;const c=normalizeCase(s.current||blankCase());const box=$("studentReferenceBox");if(!box)return;const years=Object.keys(s.years||{}).sort().reverse();box.innerHTML='<div class="notice"><b>'+esc(c.student.name||"未設定")+'</b><br>'+esc(c.student.year||"")+'年度 ／ '+esc(c.student.klass||"")+(c.student.teacher?' ／ '+esc(c.student.teacher):'')+'</div>'+(years.length?'<h3>過去年度</h3>'+years.map(y=>{const h=normalizeCase(s.years[y]);return '<div class="year-history-item"><b>'+esc(y)+'年度</b> ／ '+esc(h.student.klass||"")+(h.student.teacher?' ／ '+esc(h.student.teacher):'')+'<br>記録 '+h.records.length+'件 ／ 計画 '+(h.plan?.task||h.plan?.goal?'あり':'なし')+'<br><button type="button" data-ref-year="'+esc(y)+'" data-ref-id="'+esc(id)+'">この年度を表示</button></div>'}).join(''):'<div class="muted">過去年度の記録はありません。</div>');box.querySelectorAll('[data-ref-year]').forEach(b=>b.onclick=()=>referenceYear(b.dataset.id,b.dataset.refYear));$("studentReferenceDialog").classList.add("show")}
+function referenceYear(id,year){const s=APP.students[id],h=s?.years?.[year];if(!h)return;const box=$("studentReferenceBox");const c=normalizeCase(h);box.innerHTML='<div class="notice"><b>'+esc(c.student.name||"未設定")+'</b><br>'+esc(c.student.year||year)+'年度 ／ '+esc(c.student.klass||"")+(c.student.teacher?' ／ '+esc(c.student.teacher):'')+'<br>現在のデータは変更されません。</div><h3>現在の焦点</h3><p>'+esc(c.student.focus||"未設定")+'</p><h3>記録</h3>'+c.records.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(r=>'<div class="item"><b>'+esc(r.date)+' ／ '+esc(r.source)+'</b><p>'+esc(r.text)+'</p></div>').join('')+(c.plan?.task||c.plan?.goal||c.plan?.support?'<h3>当時の計画</h3><div class="item"><b>課題</b><p>'+esc(c.plan.task)+'</p><b>目標</b><p>'+esc(c.plan.goal)+'</p><b>手立て</b><p>'+esc(c.plan.support)+'</p></div>':'');}
+function exportStudents(ids){syncActive();const selected=ids||Object.values(document.querySelectorAll('[data-export-id]:checked')).map(x=>x.dataset.exportId);const use=selected.length?selected:[APP.activeStudentId];const payload={type:"jiritsu-compiler-students",version:1,exportedAt:new Date().toISOString(),students:{}};use.forEach(id=>{if(APP.students[id])payload.students[id]=APP.students[id]});const b=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="自立活動コンパイラ_引き継ぎ_"+new Date().toISOString().slice(0,10)+".json";a.click();toast(use.length+'人分を書き出しました')}
+function startNewYear(){syncActive();const s=APP.students[APP.activeStudentId];if(!s)return;const oldYear=String(D.student.year||"");const nextYear=String((parseInt(oldYear,10)||new Date().getFullYear())+1);if(!confirm(oldYear+'年度のデータを保存して、'+nextYear+'年度を開始しますか？'))return;archiveCurrentYear(s);const keep={name:D.student.name,klass:$('manageKlass')?.value.trim()||"",teacher:$('manageTeacher')?.value.trim()||""};s.current=blankCase(keep.name,nextYear);s.current.student.klass=keep.klass;s.current.student.teacher=keep.teacher;D=s.current;loadStudentFields();save();renderStudentManage();toast(nextYear+'年度を開始しました。過去年度は参照できます')}
+function startNewYearAll(){
+  syncActive();
+  const active=Object.values(APP.students||{}).filter(s=>s.status!=="archived");
+  if(!active.length)return;
+  const years=[...new Set(active.map(s=>String(s.current?.student?.year||"")))];
+  if(years.length!==1||!years[0]){toast("現在の生徒の年度がそろっていません");return}
+  const oldYear=years[0],nextYear=String((parseInt(oldYear,10)||new Date().getFullYear())+1);
+  const klass=$('manageKlass')?.value.trim()||"",teacher=$('manageTeacher')?.value.trim()||"",targetYear=$('manageYear')?.value.trim()||nextYear;
+  if(!confirm('現在の'+active.length+'人を'+targetYear+'年度へ移行しますか？\n'+oldYear+'年度のデータは全員分保存されます。'))return;
+  active.forEach(s=>{const c=normalizeCase(s.current);s.years=s.years||{};s.years[oldYear]=JSON.parse(JSON.stringify(c));s.current=blankCase(c.student.name,targetYear);s.current.student.klass=klass;s.current.student.teacher=teacher;s.updatedAt=new Date().toISOString().slice(0,10);});
+  D=APP.students[APP.activeStudentId].current;
+  loadStudentFields();save();renderStudentManage();toast(active.length+'人を'+targetYear+'年度へ移行しました');
+}
+function importStudentBundle(obj){if(!obj||obj.type!=="jiritsu-compiler-students"||!obj.students)throw new Error("引き継ぎファイルではありません");let count=0;Object.entries(obj.students).forEach(([id,s])=>{const incoming=JSON.parse(JSON.stringify(s));if(APP.students[id]){const existing=APP.students[id];existing.years={...(existing.years||{}),...(incoming.years||{})};existing.current=incoming.current||existing.current;existing.status=incoming.status||existing.status;existing.updatedAt=new Date().toISOString().slice(0,10)}else{incoming.id=id;incoming.current=normalizeCase(incoming.current);incoming.years=incoming.years||{};APP.students[id]=incoming}count++});const first=Object.keys(obj.students)[0];if(first&&APP.students[first]){APP.activeStudentId=first;D=APP.students[first].current;loadStudentFields()}save();renderStudentSelector();toast(count+'人分を引き継ぎました')}
+$("studentSelect").onchange=()=>switchStudent($("studentSelect").value);
+$("studentManage").onclick=()=>{$("studentManageDialog").classList.add("show");renderStudentManage()};
+$("closeStudentManage").onclick=()=>$("studentManageDialog").classList.remove("show");
+$("studentManageDialog").onclick=e=>{if(e.target.id==="studentManageDialog")$("studentManageDialog").classList.remove("show")};
+$("closeStudentReference").onclick=()=>$("studentReferenceDialog").classList.remove("show");
+$("studentReferenceDialog").onclick=e=>{if(e.target.id==="studentReferenceDialog")$("studentReferenceDialog").classList.remove("show")};
+function show(id,b){document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));$(id).classList.add("active");document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("active"));b.classList.add("active");render()}
+$("aiMode").onchange=()=>{const m=$("aiMode").value;AI.mode=m;$("apiSettings").style.display=m==="api"?"block":"none";$("runAI").style.display=m==="api"?"inline-block":"none"};
+$("makePrompt").onclick=async()=>{const p=buildPrompt();$("promptbox").value=p;try{await navigator.clipboard.writeText(p);toast("AI用データをコピーしました")}catch(e){toast("生成しました。手動でコピーしてください")}};
+$("runAI").onclick=async()=>{const endpoint=$("aiEndpoint").value.trim(),model=$("aiModel").value.trim(),key=$("aiKey").value.trim();if(!endpoint||!model||!key){toast("エンドポイント・モデル・APIキーを入力してください");return}const p=buildPrompt();$("promptbox").value=p;$("runAI").disabled=true;$("runAI").textContent="分析中…";try{const res=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},body:JSON.stringify({model,temperature:0.1,messages:[{role:"system",content:"あなたは特別支援教育の自立活動分析AIです。事実と推論を分離し、反証を探し、必要な要素を経由して6区分27項目を選定し、指定JSONだけで回答してください。"},{role:"user",content:p}]})});if(!res.ok)throw new Error("HTTP "+res.status);const j=await res.json();let text=j.choices?.[0]?.message?.content||j.output_text||"";text=text.replace(/^```json\\s*/i,"").replace(/^```\\s*/i,"").replace(/\\s*```$/i,"").trim();$("aibox").value=text;setAIResult(JSON.parse(text));toast("AI分析を反映しました")}catch(e){toast("AI分析に失敗："+e.message)}finally{$("runAI").disabled=false;$("runAI").textContent="APIで分析する"}};
+$("importAI").onclick=()=>{try{let text=cleanAIText($("aibox").value);setAIResult(JSON.parse(text))}catch(e){toast("JSON形式を確認してください")}};
+$("makePostPrompt").onclick=async()=>{const p=buildPostPrompt();$("postAIPromptBox").value=p;const d=$("postAIPromptBox").closest("details");if(d)d.open=true;try{await navigator.clipboard.writeText(p);postStatus("✓ AI評価用データをコピーしました。ブラウザAIへ貼り付けてください。")}catch(e){postStatus("生成しました。手動でコピーしてください。");}};
+$("importPostAI").onclick=()=>{try{let text=cleanAIText($("postAIBox").value);D.postAIResult=JSON.parse(text);save();postStatus("✓ AI評価を反映しました。結果を保存しました。");renderPostAIResult();renderPlanDecision();}catch(e){postStatus("AI評価のJSON形式を確認してください。");}};
+$("runPostAI").onclick=async()=>{const endpoint=$("aiEndpoint").value.trim(),model=$("aiModel").value.trim(),key=$("aiKey").value.trim();if(!endpoint||!model||!key){postStatus("先に⑦AIでエンドポイント・モデル・APIキーを設定してください。");return}const p=buildPostPrompt();$("postAIPromptBox").value=p;const d=$("postAIPromptBox").closest("details");if(d)d.open=true;const b=$("runPostAI");b.disabled=true;b.textContent="評価中…";try{const res=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},body:JSON.stringify({model,temperature:0.1,messages:[{role:"system",content:"あなたは特別支援学校の自立活動の計画後評価AIです。指定JSONだけで回答してください。"},{role:"user",content:p}]})});if(!res.ok)throw new Error("HTTP "+res.status);const j=await res.json();const text=cleanAIText(j.choices?.[0]?.message?.content||j.output_text||"");D.postAIResult=JSON.parse(text);$("postAIBox").value=text;save();postStatus("✓ 計画後AI評価を反映しました。");renderPostAIResult();}catch(e){postStatus("AI評価に失敗："+e.message)}finally{b.disabled=false;b.textContent="APIで評価する"}};
+// すべてのボタンに「押した」ことが視認できるフィードバックを付ける。
+document.addEventListener("click",e=>{
+  const b=e.target.closest("button");
+  if(!b || b.id==="backToTop")return;
+  b.classList.remove("button-clicked");
+  void b.offsetWidth;
+  b.classList.add("button-clicked");
+  clearTimeout(b._buttonPulseTimer);
+  b._buttonPulseTimer=setTimeout(()=>b.classList.remove("button-clicked"),380);
+});
+const topBtn=$("backToTop");
+const updateTopButton=()=>{if(topBtn)topBtn.classList.toggle("hidden",window.scrollY<260)};
+window.addEventListener("scroll",updateTopButton,{passive:true});
+if(topBtn)topBtn.onclick=()=>window.scrollTo({top:0,behavior:"smooth"});
+updateTopButton();
+
+applyAppVersion();
+load();renderStudentSelector();if($("showOffRecords"))$("showOffRecords").onchange=()=>render();render();
+})();
+</script></body></html>
